@@ -1,6 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
+import yardPhoto from "@/public/images/yard-coaching.jpg";
+import carPhoto from "@/public/images/in-car-lesson.jpg";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
@@ -117,56 +120,94 @@ function pick(ids: string[]): RoadSign[] {
   return ids.map(signById).filter((s): s is RoadSign => Boolean(s));
 }
 
-function ProductPreview() {
+function QuizCard() {
   const sign = signById("speed-hump") ?? SIGNS[0];
-  const options = [
-    "Uneven road surface ahead",
-    "Speed hump ahead",
-    "Steep descent ahead",
-    "Narrow bridge ahead",
-  ];
+  const options = ["Uneven road surface ahead", "Speed hump ahead", "Steep descent ahead"];
   return (
-    <div className="relative">
-      <div className="absolute -inset-6 -z-10 rounded-[28px] dot-grid opacity-60" aria-hidden />
-      <div className="overflow-hidden rounded-2xl border border-asphalt/[0.1] bg-navy-850 shadow-pop">
-        <div className="flex items-center justify-between border-b border-asphalt/[0.08] px-5 py-3">
-          <div className="text-xs font-medium text-ink-muted">Mock test · Signs, signals & markings</div>
-          <div className="flex items-center gap-1.5 text-xs tabular text-ink-muted">
-            <Clock className="h-3.5 w-3.5" /> 41:12
-          </div>
-        </div>
-        <div className="h-1 bg-navy-800">
-          <div className="h-full w-[38%] bg-cyan" />
-        </div>
-        <div className="p-5 sm:p-6">
-          <div className="text-xs font-medium text-ink-faint">Question 26 of 68</div>
-          <div className="mt-1.5 text-[15px] font-semibold text-ink">What does this sign tell you?</div>
-          <div className="my-5 grid place-items-center rounded-xl bg-navy-800/60 py-6">
-            <RoadSignSVG sign={sign} size={112} />
-          </div>
-          <div className="grid gap-2">
-            {options.map((o, i) => {
-              const right = i === 1;
-              return (
-                <div
-                  key={o}
-                  className={
-                    right
-                      ? "flex items-center justify-between rounded-lg border border-grass/40 bg-grass/[0.07] px-3.5 py-2.5 text-sm font-medium text-ink"
-                      : "rounded-lg border border-asphalt/[0.1] px-3.5 py-2.5 text-sm text-ink-muted"
-                  }
-                >
-                  <span>
-                    <span className="mr-2 text-ink-faint">{String.fromCharCode(65 + i)}.</span>
-                    {o}
-                  </span>
-                  {right && <Check className="h-4 w-4 text-grass" />}
-                </div>
-              );
-            })}
-          </div>
+    <div className="overflow-hidden rounded-xl border border-asphalt/[0.1] bg-navy-850 shadow-pop">
+      <div className="flex items-center justify-between border-b border-asphalt/[0.08] px-4 py-2.5">
+        <div className="text-[11px] font-medium text-ink-muted">Mock test · Question 26 of 68</div>
+        <div className="flex items-center gap-1 text-[11px] tabular text-ink-muted">
+          <Clock className="h-3 w-3" /> 41:12
         </div>
       </div>
+      <div className="h-0.5 bg-navy-800">
+        <div className="h-full w-[38%] bg-cyan" />
+      </div>
+      <div className="p-4">
+        <div className="flex items-center gap-3">
+          <div className="grid h-16 w-16 shrink-0 place-items-center rounded-lg bg-navy-800/70">
+            <RoadSignSVG sign={sign} size={48} />
+          </div>
+          <div className="text-sm font-semibold leading-snug text-ink">What does this sign tell you?</div>
+        </div>
+        <div className="mt-3 grid gap-1.5">
+          {options.map((o, i) => {
+            const right = i === 1;
+            return (
+              <div
+                key={o}
+                className={
+                  right
+                    ? "flex items-center justify-between rounded-md border border-grass/40 bg-grass/[0.08] px-3 py-2 text-[13px] font-medium text-ink"
+                    : "rounded-md border border-asphalt/[0.1] px-3 py-2 text-[13px] text-ink-muted"
+                }
+              >
+                <span>
+                  <span className="mr-1.5 text-ink-faint">{String.fromCharCode(65 + i)}.</span>
+                  {o}
+                </span>
+                {right && <Check className="h-3.5 w-3.5 text-grass" />}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Hero visual: real-world photo with the product UI layered on top. */
+function HeroVisual() {
+  return (
+    <div className="relative pb-16 pl-6 sm:pl-12 lg:pb-12">
+      <div className="absolute -inset-x-4 -bottom-4 top-10 -z-10 rounded-[32px] dot-grid opacity-50" aria-hidden />
+      <div className="relative ml-auto aspect-[4/5] w-full max-w-[420px] overflow-hidden rounded-2xl bg-navy-800 shadow-pop ring-1 ring-asphalt/[0.08]">
+        <Image
+          src={yardPhoto}
+          alt="A driving instructor goes through yard-test notes with a learner driver next to a car with L-plates"
+          fill
+          priority
+          placeholder="blur"
+          sizes="(min-width: 1024px) 420px, 90vw"
+          className="object-cover object-[50%_35%]"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" aria-hidden />
+      </div>
+
+      <motion.div
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.45, duration: 0.4 }}
+        className="absolute right-3 top-4 flex items-center gap-2.5 rounded-xl border border-asphalt/[0.08] bg-navy-850/95 py-2 pl-2 pr-3.5 shadow-pop backdrop-blur sm:-right-4"
+      >
+        <span className="grid h-8 w-8 place-items-center rounded-lg bg-grass/10 text-grass">
+          <Check className="h-4 w-4" />
+        </span>
+        <span className="leading-tight">
+          <span className="block text-[13px] font-semibold text-ink">Signs section passed</span>
+          <span className="block text-[11px] text-ink-muted">27 of 30 · pass mark 23</span>
+        </span>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3, duration: 0.45 }}
+        className="absolute bottom-0 left-0 w-[78%] max-w-[330px]"
+      >
+        <QuizCard />
+      </motion.div>
     </div>
   );
 }
@@ -255,9 +296,9 @@ export default function LandingPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="mx-auto w-full max-w-md lg:max-w-none"
+          className="mx-auto w-full max-w-lg lg:max-w-none"
         >
-          <ProductPreview />
+          <HeroVisual />
         </motion.div>
       </section>
 
@@ -316,6 +357,58 @@ export default function LandingPage() {
             </motion.div>
           ))}
         </div>
+      </section>
+
+      {/* From theory to the road */}
+      <section className="mx-auto max-w-6xl px-4 pb-20 sm:px-6 lg:pb-28">
+        <motion.div {...fade} className="grid gap-6 lg:grid-cols-2 lg:items-end">
+          <div>
+            <div className="eyebrow">Theory first, then the road</div>
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+              Walk into your lessons already knowing the rules.
+            </h2>
+          </div>
+          <p className="text-ink-muted lg:pb-1">
+            Every hour with an instructor costs money. Learn the signs, the rules of the road and the K53
+            observation routine here first, so your time behind the wheel goes on actually driving.
+          </p>
+        </motion.div>
+
+        <motion.figure
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.6, ease: [0.2, 0.8, 0.2, 1] }}
+          className="relative mt-10 overflow-hidden rounded-2xl bg-navy-800 shadow-raised ring-1 ring-asphalt/[0.08]"
+        >
+          <div className="relative aspect-[4/3] sm:aspect-[16/9] lg:aspect-[2.18/1]">
+            <Image
+              src={carPhoto}
+              alt="An instructor points out the road ahead to a learner driver during an in-car lesson on a jacaranda-lined street"
+              fill
+              placeholder="blur"
+              sizes="(min-width: 1152px) 1152px, 100vw"
+              className="object-cover object-[50%_40%]"
+            />
+            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/45 to-transparent" aria-hidden />
+          </div>
+
+          <figcaption className="absolute bottom-3 left-3 right-3 sm:bottom-5 sm:left-5 sm:right-auto sm:w-[340px]">
+            <div className="rounded-xl border border-white/10 bg-black/45 p-4 text-white shadow-pop backdrop-blur-md">
+              <div className="flex items-center justify-between gap-3">
+                <div className="text-sm font-semibold">Road Test Ready</div>
+                <span className="rounded-md bg-white/15 px-2 py-0.5 text-[11px] font-medium">Learning path</span>
+              </div>
+              <div className="mt-1 text-[13px] text-white/75">Observations · blind spots · the K53 system</div>
+              <div className="mt-3 flex items-center gap-2.5">
+                <div className="h-1 flex-1 overflow-hidden rounded-full bg-white/20">
+                  <div className="h-full w-2/3 rounded-full bg-white" />
+                </div>
+                <span className="tabular text-[11px] text-white/75">2 of 3 lessons</span>
+              </div>
+            </div>
+          </figcaption>
+        </motion.figure>
       </section>
 
       {/* Signs showcase */}

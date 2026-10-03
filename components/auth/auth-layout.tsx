@@ -2,6 +2,8 @@
 
 import * as React from "react";
 import Link from "next/link";
+import Image from "next/image";
+import yardPhoto from "@/public/images/yard-coaching.jpg";
 import { Check } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { ThemeToggle } from "@/components/theme";
@@ -16,11 +18,13 @@ export function AuthLayout({
   description,
   children,
   footer,
+  aside = "signs",
 }: {
   title: string;
   description?: string;
   children: React.ReactNode;
   footer?: React.ReactNode;
+  aside?: "signs" | "photo";
 }) {
   return (
     <div className="grid min-h-screen lg:grid-cols-[1fr_minmax(0,560px)]">
@@ -39,35 +43,68 @@ export function AuthLayout({
         </div>
       </div>
 
-      <aside className="relative hidden overflow-hidden border-l border-white/[0.06] bg-asphalt-900 p-12 text-white lg:flex lg:flex-col lg:justify-between">
-        <div className="grid grid-cols-3 gap-4">
-          {MOSAIC.map((id) => {
-            const s = signById(id);
-            return s ? (
-              <div key={id} className="grid aspect-square place-items-center rounded-2xl bg-white/[0.05] ring-1 ring-white/[0.06]">
-                <RoadSignSVG sign={s} size={80} className="h-auto w-[62%]" />
-              </div>
-            ) : null;
-          })}
-        </div>
-        <div>
-          <p className="text-2xl font-semibold leading-snug tracking-tight">
-            Study the way the test is set — section by section, sign by sign.
-          </p>
-          <ul className="mt-6 space-y-2.5 text-sm text-white/70">
-            {[
-              "All the official SADC road signs",
-              "Mock tests with the real pass marks",
-              "Progress saved automatically",
-            ].map((t) => (
-              <li key={t} className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-white" /> {t}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </aside>
+      {aside === "photo" ? <PhotoAside /> : <SignsAside />}
     </div>
+  );
+}
+
+const POINTS = ["All the official SADC road signs", "Mock tests with the real pass marks", "Progress saved automatically"];
+
+function SignsAside() {
+  return (
+    <aside className="relative hidden overflow-hidden border-l border-white/[0.06] bg-asphalt-900 p-12 text-white lg:flex lg:flex-col lg:justify-between">
+      <div className="grid grid-cols-3 gap-4">
+        {MOSAIC.map((id) => {
+          const s = signById(id);
+          return s ? (
+            <div key={id} className="grid aspect-square place-items-center rounded-2xl bg-white/[0.05] ring-1 ring-white/[0.06]">
+              <RoadSignSVG sign={s} size={80} className="h-auto w-[62%]" />
+            </div>
+          ) : null;
+        })}
+      </div>
+      <div>
+        <p className="text-2xl font-semibold leading-snug tracking-tight">
+          Study the way the test is set — section by section, sign by sign.
+        </p>
+        <Points />
+      </div>
+    </aside>
+  );
+}
+
+function PhotoAside() {
+  return (
+    <aside className="relative hidden overflow-hidden bg-asphalt-900 text-white lg:block">
+      <Image
+        src={yardPhoto}
+        alt="A driving instructor goes through yard-test notes with a learner driver"
+        fill
+        priority
+        placeholder="blur"
+        sizes="560px"
+        className="object-cover object-[50%_30%]"
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/10" aria-hidden />
+      <div className="absolute inset-x-0 bottom-0 p-12">
+        <p className="text-2xl font-semibold leading-snug tracking-tight">
+          Start with the theory. Arrive at your lessons ready to drive.
+        </p>
+        <Points />
+      </div>
+    </aside>
+  );
+}
+
+function Points() {
+  return (
+    <ul className="mt-6 space-y-2.5 text-sm text-white/75">
+      {POINTS.map((t) => (
+        <li key={t} className="flex items-center gap-2">
+          <Check className="h-4 w-4 text-white" /> {t}
+        </li>
+      ))}
+    </ul>
   );
 }
 

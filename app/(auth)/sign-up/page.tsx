@@ -34,6 +34,7 @@ export default function SignUpPage() {
 
   return (
     <AuthLayout
+      aside="photo"
       title="Create your account"
       description="Free to start. Takes less than a minute."
       footer={
