@@ -79,10 +79,10 @@ export function BadgeToast() {
               <Icon className="h-6 w-6" />
             </motion.span>
             <div className="pr-1">
-              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-faint">
+              <div className="text-xs text-ink-faint">
                 Badge unlocked
               </div>
-              <div className="font-heading text-base font-bold text-ink">{badge.name}</div>
+              <div className="text-sm font-semibold text-ink">{badge.name}</div>
               <div className="text-xs text-ink-muted">{badge.description}</div>
             </div>
           </div>

@@ -69,6 +69,10 @@ interface Store {
 
 const today = () => new Date().toISOString().slice(0, 10);
 
+/** Prepend an XP event; the log feeds the weekly activity chart. */
+const logXp = (log: XpEvent[], amount: number, reason: string): XpEvent[] =>
+  amount > 0 ? [{ id: crypto.randomUUID(), amount, reason, at: Date.now() }, ...log].slice(0, 500) : log;
+
 const initialProfile: OnboardingProfile = {
   completed: false,
   username: "",
@@ -105,10 +109,7 @@ export const useStore = create<Store>()(
         set((s) => ({
           xp: s.xp + amount,
           coins: s.coins + Math.round(amount / 20),
-          xpLog: [
-            { id: crypto.randomUUID(), amount, reason, at: Date.now() },
-            ...s.xpLog,
-          ].slice(0, 60),
+          xpLog: logXp(s.xpLog, amount, reason),
         })),
 
       addCoins: (n) => set((s) => ({ coins: s.coins + n })),
@@ -132,6 +133,7 @@ export const useStore = create<Store>()(
             },
             xp: s.xp + xpGain,
             coins: s.coins + (correct ? 1 : 0),
+            xpLog: logXp(s.xpLog, xpGain, "Correct answer"),
           };
         }),
 
@@ -145,15 +147,7 @@ export const useStore = create<Store>()(
             perfectRooms: perfect ? [...s.perfectRooms, roomId] : s.perfectRooms,
             xp: s.xp + gain,
             coins: s.coins + 10,
-            xpLog: [
-              {
-                id: crypto.randomUUID(),
-                amount: gain,
-                reason: `Completed room${perfect ? " (perfect!)" : ""}`,
-                at: Date.now(),
-              },
-              ...s.xpLog,
-            ].slice(0, 60),
+            xpLog: logXp(s.xpLog, gain, `Completed lesson${perfect ? " (perfect)" : ""}`),
           };
         }),
 
@@ -180,6 +174,7 @@ export const useStore = create<Store>()(
             freezes,
             lastStudyDay: t,
             xp: s.xp + XP_REWARDS.streakDay,
+            xpLog: logXp(s.xpLog, XP_REWARDS.streakDay, "Daily check-in"),
           };
         }),
 
@@ -199,12 +194,11 @@ export const useStore = create<Store>()(
 
       clearBadgeToast: () => set({ lastBadgeUnlocked: null }),
 
-      markDailyDone: () =>
-        set((s) => ({
-          dailyChallengeDoneOn: today(),
-          xp: s.xp + XP_REWARDS.dailyChallenge,
-          coins: s.coins + 15,
-        })),
+      markDailyDone: () => {
+        if (get().dailyChallengeDoneOn === today()) return;
+        set({ dailyChallengeDoneOn: today() });
+        get().awardXp(XP_REWARDS.dailyChallenge, "Daily challenge");
+      },
 
       reset: () =>
         set({

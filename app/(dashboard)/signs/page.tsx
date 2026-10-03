@@ -107,8 +107,8 @@ function Library() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 sm:pb-0">
+      <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+        <div className="no-scrollbar -mx-1 flex gap-1.5 overflow-x-auto px-1">
           {["All", ...SIGN_CATEGORIES].map((c) => {
             const count = c === "All" ? SIGNS.length : SIGNS.filter((s) => s.category === c).length;
             return (
@@ -128,7 +128,7 @@ function Library() {
             );
           })}
         </div>
-        <label className="relative block sm:w-64">
+        <label className="relative block xl:w-64">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-faint" />
           <input
             value={query}

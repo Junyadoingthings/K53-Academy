@@ -2,11 +2,12 @@
 
 import * as React from "react";
 import { motion } from "framer-motion";
-import { FileCheck2, Timer, CheckCircle2, XCircle, Zap, ArrowRight, PartyPopper } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, Clock, Flag, XCircle } from "lucide-react";
 import { ConfettiBurst } from "@/components/effects/confetti";
-import { Card, CardBody } from "@/components/ui/card";
+import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Pill } from "@/components/ui/pill";
+import { PageHeader } from "@/components/ui/page-header";
 import { RoadSignSVG } from "@/components/signs/road-sign";
 import { CountUp } from "@/components/gamification/count-up";
 import { AchievementWatcher } from "@/components/gamification/achievement-watcher";
@@ -14,117 +15,119 @@ import { ClientOnly } from "@/components/hydration";
 import { useStore } from "@/lib/store";
 import { QUESTIONS } from "@/lib/data/questions";
 import { signById } from "@/lib/data/signs";
-import { shuffle } from "@/lib/utils";
+import { cn, shuffle } from "@/lib/utils";
 import { XP_REWARDS } from "@/lib/xp-engine";
 import type { Question, QCategory } from "@/lib/data/types";
-import { cn } from "@/lib/utils";
 
-// Official K53 learner's structure (the real target).
+/** Official learner's test structure, in the order the sections are written. */
 const OFFICIAL = [
-  { cat: "Vehicle Controls" as QCategory, count: 8, pass: 6 },
-  { cat: "Road Signs & Markings" as QCategory, count: 30, pass: 23 },
-  { cat: "Rules of the Road" as QCategory, count: 30, pass: 22 },
+  { cat: "Rules of the Road" as QCategory, label: "Rules of the road", count: 30, pass: 22 },
+  { cat: "Road Signs & Markings" as QCategory, label: "Signs, signals & markings", count: 30, pass: 23 },
+  { cat: "Vehicle Controls" as QCategory, label: "Vehicle controls", count: 8, pass: 6 },
 ];
 const TEST_SECONDS = 60 * 60;
 
-function buildPaper(): Question[] {
-  // Demo paper: as many as the bank holds per section (seed to 1000+ for a
-  // full 68-question paper). Real ordering mirrors the official structure.
-  const paper: Question[] = [];
-  for (const sec of OFFICIAL) {
-    const pool = shuffle(QUESTIONS.filter((q) => q.category === sec.cat));
-    paper.push(...pool.slice(0, sec.count));
-  }
-  return paper;
+function poolFor(cat: QCategory, code: string) {
+  return QUESTIONS.filter((q) => q.category === cat && q.codes.includes(code as "1" | "2" | "3"));
+}
+
+function buildPaper(code: string): Question[] {
+  return OFFICIAL.flatMap((sec) => shuffle(poolFor(sec.cat, code)).slice(0, sec.count));
 }
 
 function MockInner() {
   const awardXp = useStore((s) => s.awardXp);
   const touchStreak = useStore((s) => s.touchStreak);
+  const code = useStore((s) => s.profile.code);
   const [phase, setPhase] = React.useState<"intro" | "run" | "result">("intro");
   const [paper, setPaper] = React.useState<Question[]>([]);
   const [i, setI] = React.useState(0);
   const [answers, setAnswers] = React.useState<Record<string, number>>({});
+  const [flags, setFlags] = React.useState<Record<string, boolean>>({});
   const [time, setTime] = React.useState(TEST_SECONDS);
+  const [confirming, setConfirming] = React.useState(false);
+
+  const available = OFFICIAL.map((s) => Math.min(s.count, poolFor(s.cat, code).length));
+  const paperLength = available.reduce((a, b) => a + b, 0);
+  const isShort = OFFICIAL.some((s, idx) => available[idx] < s.count);
+
+  const result = React.useMemo(() => {
+    const sections = OFFICIAL.map((s) => {
+      const qs = paper.filter((q) => q.category === s.cat);
+      const correct = qs.filter((q) => answers[q.id] === q.answer).length;
+      const passMark = qs.length > 0 ? Math.ceil((s.pass / s.count) * qs.length) : 0;
+      return { ...s, correct, total: qs.length, passMark, passed: qs.length > 0 && correct >= passMark };
+    }).filter((s) => s.total > 0);
+    const correct = sections.reduce((a, s) => a + s.correct, 0);
+    const total = sections.reduce((a, s) => a + s.total, 0);
+    return { sections, correct, total, passed: sections.length > 0 && sections.every((s) => s.passed) };
+  }, [paper, answers]);
+
+  const submit = React.useCallback(() => {
+    setConfirming(false);
+    setPhase("result");
+    awardXp(XP_REWARDS.mockTestComplete + (result.passed ? XP_REWARDS.mockTestPass : 0), "Mock test");
+    touchStreak();
+    window.scrollTo({ top: 0 });
+  }, [awardXp, touchStreak, result.passed]);
 
   React.useEffect(() => {
     if (phase !== "run") return;
     if (time <= 0) return void submit();
     const t = setTimeout(() => setTime((v) => v - 1), 1000);
     return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, time]);
+  }, [phase, time, submit]);
 
   function start() {
-    const p = buildPaper();
-    setPaper(p);
+    setPaper(buildPaper(code));
     setAnswers({});
+    setFlags({});
     setI(0);
     setTime(TEST_SECONDS);
     setPhase("run");
   }
 
-  function pick(qid: string, opt: number) {
-    setAnswers((a) => ({ ...a, [qid]: opt }));
-  }
-
-  const result = React.useMemo(() => {
-    const bySec: Record<string, { correct: number; total: number }> = {};
-    for (const q of paper) {
-      bySec[q.category] ??= { correct: 0, total: 0 };
-      bySec[q.category].total++;
-      if (answers[q.id] === q.answer) bySec[q.category].correct++;
-    }
-    const sections = OFFICIAL.map((s) => {
-      const r = bySec[s.cat] ?? { correct: 0, total: 0 };
-      const passMark = r.total > 0 ? Math.ceil((s.pass / s.count) * r.total) : 0;
-      return { ...s, ...r, passMark, passed: r.correct >= passMark && r.total > 0 };
-    }).filter((s) => s.total > 0);
-    const correct = sections.reduce((a, s) => a + s.correct, 0);
-    const total = sections.reduce((a, s) => a + s.total, 0);
-    const passed = sections.length > 0 && sections.every((s) => s.passed);
-    return { sections, correct, total, passed };
-  }, [paper, answers]);
-
-  function submit() {
-    setPhase("result");
-    const xp = XP_REWARDS.mockTestComplete + (result.passed ? XP_REWARDS.mockTestPass : 0);
-    awardXp(xp, "Mock test");
-    touchStreak();
-  }
-
-  // ── Intro ──
+  /* ── Intro ── */
   if (phase === "intro") {
     return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="font-heading text-3xl font-bold text-ink">Mock Test</h1>
-          <p className="mt-1 text-ink-muted">
-            A timed simulation of the official K53 learner's test structure.
-          </p>
-        </div>
-        <Card glow="cyan">
+      <div className="mx-auto max-w-3xl space-y-6">
+        <PageHeader
+          title="Mock test"
+          description="A timed paper built like the real computerised learner's test. Answer in any order, flag questions to revisit, and submit when you're ready."
+        />
+        <Card>
           <CardBody className="p-6">
-            <div className="grid gap-4 sm:grid-cols-3">
-              {OFFICIAL.map((s) => (
-                <div key={s.cat} className="rounded-xl border border-asphalt/[0.10] bg-navy-900/50 p-4 text-center">
-                  <div className="font-heading text-2xl font-bold text-cyan">{s.count}</div>
-                  <div className="text-xs text-ink-muted">{s.cat}</div>
-                  <div className="mt-1 font-mono text-[10px] text-ink-faint">pass: {s.pass}/{s.count}</div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {OFFICIAL.map((s, idx) => (
+                <div key={s.cat} className="rounded-lg border border-asphalt/[0.09] p-4">
+                  <div className="text-sm font-medium text-ink">{s.label}</div>
+                  <div className="tabular mt-3 text-2xl font-semibold tracking-tight text-ink">{available[idx]}</div>
+                  <div className="text-xs text-ink-muted">questions</div>
+                  <div className="mt-2 text-xs text-ink-faint">
+                    Real test: pass {s.pass} of {s.count}
+                  </div>
                 </div>
               ))}
             </div>
-            <div className="mt-5 flex flex-wrap items-center justify-center gap-3 text-sm text-ink-muted">
-              <span className="inline-flex items-center gap-1.5"><FileCheck2 className="h-4 w-4 text-cyan" /> 68 questions</span>
-              <span className="inline-flex items-center gap-1.5"><Timer className="h-4 w-4 text-amber" /> 60 minutes</span>
-              <span className="inline-flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-grass" /> Must pass every section</span>
-            </div>
-            <p className="mt-4 text-center text-xs text-ink-faint">
-              This demo draws from the current question bank. Seed to 1000+ questions for the full
-              68-question paper — the structure and pass logic are already in place.
-            </p>
-            <Button size="lg" className="mt-5 w-full" onClick={start}>
-              Begin mock test <ArrowRight className="h-4 w-4" />
+            <ul className="mt-5 grid gap-2 text-sm text-ink-muted sm:grid-cols-3">
+              <li className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-ink-faint" /> 60 minutes
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-ink-faint" /> Pass every section
+              </li>
+              <li className="flex items-center gap-2">
+                <Flag className="h-4 w-4 text-ink-faint" /> Flag and come back
+              </li>
+            </ul>
+            {isShort && (
+              <p className="mt-5 rounded-lg bg-navy-800/70 px-3.5 py-2.5 text-xs leading-relaxed text-ink-muted">
+                Our question bank doesn't yet fill every section of the real 68-question paper, so this paper has{" "}
+                {paperLength} questions. Pass marks are scaled to the same percentage as the real test.
+              </p>
+            )}
+            <Button size="lg" className="mt-6 w-full" onClick={start}>
+              Start mock test <ArrowRight className="h-4 w-4" />
             </Button>
           </CardBody>
         </Card>
@@ -132,156 +135,239 @@ function MockInner() {
     );
   }
 
-  // ── Result ──
+  /* ── Result ── */
   if (phase === "result") {
+    const wrong = paper.filter((q) => answers[q.id] !== q.answer);
     return (
-      <div className="mx-auto max-w-xl space-y-5">
+      <div className="mx-auto max-w-3xl space-y-6">
         <AchievementWatcher mockPassed={result.passed} />
-        {result.passed && <ConfettiBurst count={110} origin="top" />}
-        <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }}>
-          <Card glow={result.passed ? "grass" : "signal"}>
-            <CardBody className="p-8 text-center">
-              <div
-                className={cn(
-                  "mx-auto grid h-16 w-16 place-items-center rounded-2xl",
-                  result.passed ? "bg-grass/10 text-grass" : "bg-signal/10 text-signal-soft"
-                )}
-              >
-                {result.passed ? <CheckCircle2 className="h-8 w-8" /> : <XCircle className="h-8 w-8" />}
-              </div>
-              <h2 className="mt-4 flex items-center justify-center gap-2 font-heading text-3xl font-bold text-ink">
-                {result.passed ? (
-                  <>
-                    PASS <PartyPopper className="h-7 w-7 text-amber" />
-                  </>
-                ) : (
-                  "Not yet"
-                )}
-              </h2>
-              <p className="mt-1 text-ink-muted">
-                {result.correct}/{result.total} correct overall
+        {result.passed && <ConfettiBurst count={80} origin="top" />}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+          <Card>
+            <CardBody className="p-8 text-center sm:p-10">
+              {result.passed ? (
+                <CheckCircle2 className="mx-auto h-12 w-12 text-grass" />
+              ) : (
+                <XCircle className="mx-auto h-12 w-12 text-cyan" />
+              )}
+              <h1 className="mt-4 text-3xl font-semibold tracking-tight text-ink">
+                {result.passed ? "You passed" : "Not a pass yet"}
+              </h1>
+              <p className="mt-2 text-ink-muted">
+                {result.correct} of {result.total} correct overall.{" "}
+                {result.passed ? "You met the pass mark in every section." : "You need to pass every section."}
               </p>
-              <div className="mx-auto mt-4 inline-flex items-center gap-2 rounded-xl border border-cyan/20 bg-cyan/[0.05] px-4 py-2">
-                <Zap className="h-4 w-4 text-cyan" fill="currentColor" />
-                <span className="font-mono font-bold text-cyan">
-                  +<CountUp value={150 + (result.passed ? 100 : 0)} /> XP
-                </span>
+              <div className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-ink">
+                +<CountUp value={XP_REWARDS.mockTestComplete + (result.passed ? XP_REWARDS.mockTestPass : 0)} /> XP
               </div>
             </CardBody>
           </Card>
         </motion.div>
 
-        <div className="space-y-2">
+        <div className="grid gap-3 sm:grid-cols-3">
           {result.sections.map((s) => (
-            <Card key={s.cat}>
-              <CardBody className="flex items-center justify-between p-4">
-                <div>
-                  <div className="font-medium text-ink">{s.cat}</div>
-                  <div className="font-mono text-xs text-ink-faint">
-                    {s.correct}/{s.total} · need {s.passMark}
-                  </div>
-                </div>
-                {s.passed ? (
-                  <Pill tone="grass"><CheckCircle2 className="h-3 w-3" /> Passed</Pill>
-                ) : (
-                  <Pill tone="signal"><XCircle className="h-3 w-3" /> Failed</Pill>
-                )}
-              </CardBody>
-            </Card>
+            <div key={s.cat} className="rounded-xl border border-asphalt/[0.09] bg-navy-850 p-4 shadow-card">
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-sm font-medium text-ink">{s.label}</div>
+                {s.passed ? <Pill tone="grass">Pass</Pill> : <Pill tone="cyan">Fail</Pill>}
+              </div>
+              <div className="tabular mt-3 text-2xl font-semibold text-ink">
+                {s.correct}
+                <span className="text-base font-normal text-ink-faint"> / {s.total}</span>
+              </div>
+              <div className="text-xs text-ink-muted">Needed {s.passMark}</div>
+            </div>
           ))}
         </div>
 
-        <Button className="w-full" onClick={() => setPhase("intro")}>
-          Take another
-        </Button>
+        {wrong.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Review your mistakes ({wrong.length})</CardTitle>
+            </CardHeader>
+            <CardBody className="divide-y divide-asphalt/[0.07] p-0">
+              {wrong.map((q) => {
+                const sign = q.signId ? signById(q.signId) : undefined;
+                const yours = answers[q.id];
+                return (
+                  <div key={q.id} className="flex gap-4 px-5 py-4">
+                    {sign && <RoadSignSVG sign={sign} size={48} className="shrink-0" />}
+                    <div className="min-w-0 text-sm">
+                      <div className="font-medium text-ink">{q.prompt}</div>
+                      <div className="mt-1.5 text-ink-muted">
+                        {yours == null ? (
+                          <span className="text-ink-faint">Not answered. </span>
+                        ) : (
+                          <span>
+                            You chose <span className="text-cyan line-through decoration-cyan/40">{q.options[yours]}</span>.{" "}
+                          </span>
+                        )}
+                        Answer: <span className="font-medium text-grass">{q.options[q.answer]}</span>
+                      </div>
+                      <p className="mt-1.5 text-ink-faint">{q.explanation}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </CardBody>
+          </Card>
+        )}
+
+        <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+          <Button variant="outline" onClick={() => setPhase("intro")}>
+            Back to overview
+          </Button>
+          <Button onClick={start}>Take another test</Button>
+        </div>
       </div>
     );
   }
 
-  // ── Run ──
+  /* ── Run ── */
   const q = paper[i];
   const sign = q.signId ? signById(q.signId) : undefined;
-  const answered = Object.keys(answers).length;
+  const answeredCount = Object.keys(answers).length;
+  const unanswered = paper.length - answeredCount;
   const mm = String(Math.floor(time / 60)).padStart(2, "0");
   const ss = String(time % 60).padStart(2, "0");
+  const section = OFFICIAL.find((s) => s.cat === q.category)!;
 
   return (
-    <div className="mx-auto max-w-2xl space-y-4">
-      <div className="sticky top-16 z-10 flex items-center justify-between rounded-xl border border-asphalt/[0.10] bg-navy-850/90 px-4 py-2.5 backdrop-blur">
-        <span className="font-mono text-sm text-ink-muted">
-          {i + 1}/{paper.length}
-        </span>
-        <span className="font-mono text-xs text-ink-faint">{answered} answered</span>
-        <span
-          className={cn(
-            "inline-flex items-center gap-1.5 font-mono text-sm font-bold",
-            time <= 300 ? "text-signal-soft" : "text-cyan"
-          )}
-        >
-          <Timer className="h-4 w-4" /> {mm}:{ss}
-        </span>
-      </div>
+    <div className="mx-auto grid max-w-5xl gap-6 lg:grid-cols-[1fr_260px]">
+      <div className="space-y-4">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-ink-muted">
+            <span className="tabular font-medium text-ink">Question {i + 1}</span> of {paper.length} · {section.label}
+          </span>
+          <span className={cn("tabular inline-flex items-center gap-1.5 font-semibold lg:hidden", time <= 300 ? "text-cyan" : "text-ink")}>
+            <Clock className="h-4 w-4" /> {mm}:{ss}
+          </span>
+        </div>
 
-      <Card>
-        <CardBody className="p-5">
-          {sign && (
-            <div className="mb-5 flex justify-center rounded-2xl border border-asphalt/[0.10] bg-navy-900/60 py-6">
-              <RoadSignSVG sign={sign} size={120} />
-            </div>
-          )}
-          <Pill tone="cyan">{q.category}</Pill>
-          <h2 className="mt-2 font-heading text-xl font-semibold leading-snug text-ink">{q.prompt}</h2>
-          <div className="mt-4 grid gap-2.5">
-            {q.options.map((opt, idx) => {
-              const chosen = answers[q.id] === idx;
-              return (
-                <button
-                  key={idx}
-                  onClick={() => pick(q.id, idx)}
-                  className={cn(
-                    "flex items-center gap-3 rounded-xl border px-4 py-3 text-left text-sm font-medium transition-all",
-                    chosen
-                      ? "border-cyan/60 bg-cyan/10 text-cyan"
-                      : "border-asphalt/[0.12] bg-navy-800/50 hover:border-cyan/40"
-                  )}
-                >
-                  <span
+        <Card>
+          <CardBody className="p-5 sm:p-7">
+            {sign && (
+              <div className="mb-6 grid place-items-center rounded-xl bg-navy-800/60 py-8">
+                <RoadSignSVG sign={sign} size={132} />
+              </div>
+            )}
+            <h2 className="text-lg font-semibold leading-snug text-ink sm:text-xl">{q.prompt}</h2>
+            <div className="mt-5 grid gap-2">
+              {q.options.map((opt, idx) => {
+                const chosen = answers[q.id] === idx;
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => setAnswers((a) => ({ ...a, [q.id]: idx }))}
                     className={cn(
-                      "grid h-6 w-6 place-items-center rounded-md border text-xs font-bold",
-                      chosen ? "border-cyan bg-cyan text-navy-950" : "border-asphalt/20 text-ink-muted"
+                      "flex items-center gap-3 rounded-lg border px-4 py-3 text-left text-[15px] transition-colors",
+                      chosen
+                        ? "border-ink bg-navy-800/60 text-ink ring-1 ring-ink"
+                        : "border-asphalt/[0.12] bg-navy-850 text-ink hover:border-asphalt/25 hover:bg-navy-800/50"
                     )}
                   >
-                    {String.fromCharCode(65 + idx)}
-                  </span>
-                  {opt}
-                </button>
-              );
-            })}
-          </div>
-        </CardBody>
-      </Card>
+                    <span
+                      className={cn(
+                        "grid h-6 w-6 shrink-0 place-items-center rounded-md text-xs font-semibold",
+                        chosen ? "bg-ink text-navy-900" : "bg-navy-800 text-ink-muted ring-1 ring-inset ring-asphalt/[0.1]"
+                      )}
+                    >
+                      {String.fromCharCode(65 + idx)}
+                    </span>
+                    {opt}
+                  </button>
+                );
+              })}
+            </div>
+          </CardBody>
+        </Card>
 
-      <div className="flex items-center justify-between gap-2">
-        <Button variant="outline" disabled={i === 0} onClick={() => setI((v) => v - 1)}>
-          Previous
-        </Button>
-        {i + 1 < paper.length ? (
-          <Button onClick={() => setI((v) => v + 1)}>
-            Next <ArrowRight className="h-4 w-4" />
+        <div className="flex items-center justify-between gap-2">
+          <Button variant="outline" disabled={i === 0} onClick={() => setI((v) => v - 1)}>
+            <ArrowLeft className="h-4 w-4" /> Previous
           </Button>
-        ) : (
-          <Button variant="success" onClick={submit}>
-            Submit test
+          <Button
+            variant="ghost"
+            onClick={() => setFlags((f) => ({ ...f, [q.id]: !f[q.id] }))}
+            className={cn(flags[q.id] && "text-amber hover:text-amber")}
+          >
+            <Flag className="h-4 w-4" fill={flags[q.id] ? "currentColor" : "none"} /> {flags[q.id] ? "Flagged" : "Flag"}
           </Button>
-        )}
+          {i + 1 < paper.length ? (
+            <Button onClick={() => setI((v) => v + 1)}>
+              Next <ArrowRight className="h-4 w-4" />
+            </Button>
+          ) : (
+            <Button onClick={() => (unanswered > 0 ? setConfirming(true) : submit())}>Submit</Button>
+          )}
+        </div>
       </div>
+
+      <aside className="lg:sticky lg:top-20 lg:self-start">
+        <Card>
+          <CardBody className="p-4">
+            <div className="hidden items-center justify-between lg:flex">
+              <span className="text-sm text-ink-muted">Time left</span>
+              <span className={cn("tabular text-lg font-semibold", time <= 300 ? "text-cyan" : "text-ink")}>
+                {mm}:{ss}
+              </span>
+            </div>
+            <div className="mt-0 text-xs text-ink-faint lg:mt-3">
+              {answeredCount} of {paper.length} answered
+            </div>
+            <div className="mt-3 grid grid-cols-10 gap-1 lg:grid-cols-6">
+              {paper.map((pq, idx) => (
+                <button
+                  key={pq.id}
+                  onClick={() => setI(idx)}
+                  aria-label={`Go to question ${idx + 1}`}
+                  className={cn(
+                    "tabular relative grid h-7 place-items-center rounded text-[11px] font-medium transition-colors",
+                    idx === i
+                      ? "bg-ink text-navy-900"
+                      : answers[pq.id] != null
+                        ? "bg-navy-700 text-ink"
+                        : "bg-navy-800/60 text-ink-faint hover:bg-navy-800"
+                  )}
+                >
+                  {idx + 1}
+                  {flags[pq.id] && <span className="absolute right-0.5 top-0.5 h-1.5 w-1.5 rounded-full bg-amber" />}
+                </button>
+              ))}
+            </div>
+            <Button variant="outline" className="mt-4 w-full" onClick={() => (unanswered > 0 ? setConfirming(true) : submit())}>
+              Submit test
+            </Button>
+          </CardBody>
+        </Card>
+      </aside>
+
+      {confirming && (
+        <div className="fixed inset-0 z-[100] grid place-items-center bg-black/40 px-4" onClick={() => setConfirming(false)}>
+          <div
+            role="dialog"
+            aria-label="Submit test?"
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-sm rounded-xl border border-asphalt/[0.1] bg-navy-850 p-6 shadow-pop"
+          >
+            <h3 className="text-lg font-semibold text-ink">Submit with {unanswered} unanswered?</h3>
+            <p className="mt-2 text-sm text-ink-muted">Unanswered questions are marked wrong. You still have {mm}:{ss} left.</p>
+            <div className="mt-6 flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setConfirming(false)}>
+                Keep going
+              </Button>
+              <Button onClick={submit}>Submit</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 export default function MockTestPage() {
   return (
-    <ClientOnly fallback={<div className="h-96 animate-pulse rounded-2xl bg-navy-850/70" />}>
+    <ClientOnly fallback={<div className="h-96 animate-pulse rounded-xl bg-navy-850" />}>
       <MockInner />
     </ClientOnly>
   );

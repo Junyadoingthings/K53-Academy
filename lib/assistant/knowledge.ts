@@ -4,7 +4,7 @@ import { ROOMS } from "@/lib/data/rooms";
 import { PATHS } from "@/lib/data/paths";
 
 /**
- * "Robo-Instructor" knowledge base + local answer engine.
+ * K53 instructor knowledge base + local answer engine.
  *
  * Builds a searchable index from the app's own K53 content (signs, questions,
  * rooms, paths) plus a small FAQ, and answers questions with keyword-scored
@@ -81,7 +81,7 @@ const FAQ: Doc[] = [
     id: "faq-premium",
     kind: "faq",
     title: "What does Premium cost and what do I get?",
-    body: "Free covers 3 rooms per path, one mock test a week and the core question bank. Premium (R79/month or R499/year) unlocks everything: unlimited mock tests, advanced analytics, offline downloads and an ad-free experience. There is also an Instructor tier (R199/month) for driving schools to manage students. Payments use Paystack (cards, EFT, SnapScan).",
+    body: "Everything in K53 Academy is free during early access — all lessons, the full road sign library, practice and mock tests. Premium (R79/month) and an Instructor plan for driving schools (R199/month) are coming soon.",
   },
 ];
 
@@ -197,7 +197,7 @@ export function answerLocally(query: string): Answer {
 
   if (/^(hi|hey|hello|howzit|molo|sawubona|dumela)\b/.test(q) || q === "") {
     return {
-      text: "Howzit! I'm your Robo-Instructor. Ask me anything about K53 — road signs, the rules of the road, the mock test, or how the app works. Try one of the suggestions below.",
+      text: "Hi! I'm your K53 instructor. Ask me about road signs, the rules of the road, the learner's test or how the app works.",
       sources: [],
     };
   }

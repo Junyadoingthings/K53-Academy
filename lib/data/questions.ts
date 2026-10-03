@@ -1,13 +1,13 @@
 import type { Question } from "./types";
+import { SIGN_QUESTIONS } from "./sign-questions";
 
 /**
- * K53 question bank (starter set). Written from scratch to teach the same
- * concepts as the official K53 / SARTSM syllabus — no verbatim manual text.
- * Structured for expansion to 1000+; the seed script (prisma/seed.ts) and
- * admin panel append to this same shape. `codes` marks which vehicle codes
+ * K53 question bank. Written from scratch to teach the same concepts as the
+ * official K53 / SARTSM syllabus — no verbatim manual text. Sign-recognition
+ * questions are generated from lib/data/signs.ts (see sign-questions.ts). `codes` marks which vehicle codes
  * a question applies to (1 = motorcycle, 2 = light, 3 = heavy).
  */
-export const QUESTIONS: Question[] = [
+const HAND_WRITTEN: Question[] = [
   // ── Rules of the Road ────────────────────────────────────────────────
   {
     id: "ror-001",
@@ -171,6 +171,189 @@ export const QUESTIONS: Question[] = [
       "Pick a fixed point; when the car ahead passes it, you should reach it no sooner than two seconds later. Increase to four seconds in poor conditions.",
     reference: "K53 Defensive Driving — Following distance",
     difficulty: "Easy",
+  },
+
+  {
+    id: "ror-011",
+    category: "Rules of the Road",
+    type: "mcq",
+    codes: ["1", "2", "3"],
+    prompt: "A traffic light (robot) is flashing red. What must you do?",
+    options: ["Slow down and proceed with caution", "Treat it like a stop sign: stop, then go when it is safe", "Wait until it turns green", "Proceed — a flashing light has no meaning"],
+    answer: 1,
+    explanation:
+      "A flashing red signal works like a stop sign. Come to a complete stop and proceed only when it is safe.",
+    reference: "K53 Rules of the Road — Traffic signals",
+    difficulty: "Easy",
+  },
+  {
+    id: "ror-012",
+    category: "Rules of the Road",
+    type: "scenario",
+    codes: ["1", "2", "3"],
+    prompt: "You reach an intersection where the traffic lights are not working at all. How should you treat it?",
+    options: ["As a four-way stop", "As if you have right of way", "As a yield for traffic on the left only", "As a freeway on-ramp"],
+    answer: 0,
+    explanation:
+      "When the robots are out, treat the intersection as a four-way stop: everyone stops, and the first to stop is the first to go.",
+    reference: "K53 Rules of the Road — Traffic signals",
+    difficulty: "Easy",
+  },
+  {
+    id: "ror-013",
+    category: "Rules of the Road",
+    type: "mcq",
+    codes: ["1", "2", "3"],
+    prompt: "The traffic light turns steady amber as you approach. What should you do?",
+    options: ["Speed up to get through", "Stop, unless you are so close that stopping would be unsafe", "Hoot to warn other drivers", "Stop in the middle of the intersection"],
+    answer: 1,
+    explanation:
+      "A steady amber light means the signal is about to turn red. Stop before the line unless you are too close to stop safely.",
+    reference: "K53 Rules of the Road — Traffic signals",
+    difficulty: "Easy",
+  },
+  {
+    id: "ror-014",
+    category: "Rules of the Road",
+    type: "mcq",
+    codes: ["1", "2", "3"],
+    prompt: "When must your headlamps be switched on?",
+    options: ["Only on freeways", "Between sunset and sunrise, and whenever people and vehicles are not clearly visible at 150 m", "Only when it is raining", "Only in tunnels"],
+    answer: 1,
+    explanation:
+      "Headlamps must be on from sunset to sunrise, and at any time visibility is poor enough that people and vehicles can't be clearly seen at 150 m — for example in fog, heavy rain or smoke.",
+    reference: "National Road Traffic Regulations — Lamps",
+    difficulty: "Medium",
+  },
+  {
+    id: "ror-015",
+    category: "Rules of the Road",
+    type: "truefalse",
+    codes: ["1", "2", "3"],
+    prompt: "You may hold your cellphone to make a call while driving, as long as you drive slowly.",
+    options: ["True", "False"],
+    answer: 1,
+    explanation:
+      "You may not hold a cellphone while driving. Calls are only allowed with a hands-free kit — and the safest option is to pull over.",
+    reference: "National Road Traffic Act — Use of communication devices",
+    difficulty: "Easy",
+  },
+  {
+    id: "ror-016",
+    category: "Rules of the Road",
+    type: "mcq",
+    codes: ["1", "2", "3"],
+    prompt: "Who in a vehicle must wear a seatbelt?",
+    options: ["Only the driver", "Only the driver and front passenger", "Every occupant sitting in a seat where a seatbelt is fitted", "Only children"],
+    answer: 2,
+    explanation:
+      "Every occupant must wear a seatbelt where one is fitted, front and rear.",
+    reference: "National Road Traffic Regulations — Seatbelts",
+    difficulty: "Easy",
+  },
+  {
+    id: "ror-017",
+    category: "Rules of the Road",
+    type: "mcq",
+    codes: ["1", "2", "3"],
+    prompt: "When may you overtake another vehicle on its left?",
+    options: ["Never", "When the vehicle ahead is turning right and there is enough room, or on a road with two or more lanes in your direction", "Whenever the left lane is empty, including the shoulder", "Only at night"],
+    answer: 1,
+    explanation:
+      "Overtaking on the left is allowed when the vehicle ahead is turning right and there is room to pass safely, or on a road with two or more lanes in your direction of travel.",
+    reference: "K53 Rules of the Road — Overtaking",
+    difficulty: "Medium",
+  },
+  {
+    id: "ror-018",
+    category: "Rules of the Road",
+    type: "mcq",
+    codes: ["1", "2", "3"],
+    prompt: "On a freeway with two lanes in your direction, which lane should you normally drive in?",
+    options: ["The right-hand lane", "The left-hand lane, moving right only to overtake", "Either lane — it makes no difference", "The emergency shoulder"],
+    answer: 1,
+    explanation:
+      "Keep left, pass right: drive in the left lane and use the right lane to overtake, then move back.",
+    reference: "K53 Rules of the Road — Freeways",
+    difficulty: "Easy",
+  },
+  {
+    id: "ror-019",
+    category: "Rules of the Road",
+    type: "mcq",
+    codes: ["1", "2", "3"],
+    prompt: "How long is a learner's licence valid for?",
+    options: ["6 months", "12 months", "24 months", "5 years"],
+    answer: 2,
+    explanation:
+      "A learner's licence is valid for 24 months. Book your driving test before it expires, or you'll need to write the learner's test again.",
+    reference: "National Road Traffic Act — Learner's licences",
+    difficulty: "Medium",
+  },
+  {
+    id: "ror-020",
+    category: "Rules of the Road",
+    type: "mcq",
+    codes: ["2", "3"],
+    prompt: "A learner driver of a car or truck may drive on a public road only if:",
+    options: ["They drive below 60 km/h", "A person licensed to drive that vehicle class sits next to them", "They display a red L-plate on the back", "It is daytime"],
+    answer: 1,
+    explanation:
+      "A learner driver must be accompanied by someone who holds a driving licence for that class of vehicle, seated next to them.",
+    reference: "National Road Traffic Act — Learner's licences",
+    difficulty: "Medium",
+  },
+  {
+    id: "ror-021",
+    category: "Rules of the Road",
+    type: "truefalse",
+    codes: ["1"],
+    prompt: "A learner motorcyclist may carry a passenger as long as the passenger has a licence.",
+    options: ["True", "False"],
+    answer: 1,
+    explanation:
+      "A learner motorcyclist may not carry a passenger at all.",
+    reference: "National Road Traffic Act — Learner's licences",
+    difficulty: "Medium",
+  },
+  {
+    id: "ror-022",
+    category: "Rules of the Road",
+    type: "mcq",
+    codes: ["1", "2", "3"],
+    prompt: "When may you use your hooter?",
+    options: ["To greet people you know", "To tell slow drivers to hurry up", "Only when necessary to warn other road users for safety", "At any time in a built-up area"],
+    answer: 2,
+    explanation:
+      "Use your hooter only when it is necessary for safety — for example, to warn someone who hasn't seen you.",
+    reference: "K53 Rules of the Road — Use of hooter",
+    difficulty: "Easy",
+  },
+  {
+    id: "ror-023",
+    category: "Rules of the Road",
+    type: "scenario",
+    codes: ["1", "2", "3"],
+    prompt: "You are turning right at an intersection and an oncoming vehicle is going straight. Who must yield?",
+    options: ["The oncoming vehicle", "You, the driver turning right", "Whoever is bigger", "Neither — both may go"],
+    answer: 1,
+    explanation:
+      "A driver turning right across oncoming traffic must yield to vehicles coming straight through or turning left.",
+    reference: "K53 Rules of the Road — Intersections",
+    difficulty: "Easy",
+  },
+  {
+    id: "ror-024",
+    category: "Rules of the Road",
+    type: "mcq",
+    codes: ["1", "2", "3"],
+    prompt: "What is the maximum distance allowed between a towing vehicle and a vehicle towed with a rope or chain?",
+    options: ["1.5 m", "3.5 m", "6 m", "10 m"],
+    answer: 1,
+    explanation:
+      "When towing with a rope or chain, the distance between the two vehicles may not exceed 3.5 m.",
+    reference: "National Road Traffic Regulations — Towing",
+    difficulty: "Hard",
   },
 
   // ── Road Signs & Markings ────────────────────────────────────────────
@@ -515,7 +698,75 @@ export const QUESTIONS: Question[] = [
     reference: "K53 Pre-trip Inspection",
     difficulty: "Easy",
   },
+  {
+    id: "veh-011",
+    category: "Vehicle Controls",
+    type: "mcq",
+    codes: ["2", "3"],
+    prompt: "In a manual vehicle, which pedal is on the far left?",
+    options: ["Accelerator", "Brake", "Clutch", "Parking brake"],
+    answer: 2,
+    explanation:
+      "From left to right the pedals are clutch, brake and accelerator.",
+    reference: "K53 Vehicle Controls",
+    difficulty: "Easy",
+  },
+  {
+    id: "veh-012",
+    category: "Vehicle Controls",
+    type: "mcq",
+    codes: ["2", "3"],
+    prompt: "Which controls do you use to change gear in a manual vehicle?",
+    options: ["Brake and accelerator", "Clutch and gear lever", "Indicator and gear lever", "Parking brake and clutch"],
+    answer: 1,
+    explanation:
+      "Press the clutch to disengage the engine from the gearbox, select the gear with the gear lever, then release the clutch smoothly.",
+    reference: "K53 Vehicle Controls",
+    difficulty: "Easy",
+  },
+  {
+    id: "veh-013",
+    category: "Vehicle Controls",
+    type: "mcq",
+    codes: ["1", "2", "3"],
+    prompt: "Which control do you use to let other road users know you are about to turn?",
+    options: ["Hooter", "Headlamp flasher", "Indicator", "Hazard lights"],
+    answer: 2,
+    explanation:
+      "Use the indicator, in good time, to show the direction you intend to turn or change lanes.",
+    reference: "K53 Vehicle Controls",
+    difficulty: "Easy",
+  },
+  {
+    id: "veh-014",
+    category: "Vehicle Controls",
+    type: "mcq",
+    codes: ["2", "3"],
+    prompt: "Which controls do you use to stop a manual vehicle smoothly?",
+    options: ["Accelerator and clutch", "Brake and clutch", "Gear lever and indicator", "Parking brake only"],
+    answer: 1,
+    explanation:
+      "Brake to slow the vehicle, and press the clutch just before it stops so the engine doesn't stall.",
+    reference: "K53 Vehicle Controls",
+    difficulty: "Easy",
+  },
+  {
+    id: "veh-015",
+    category: "Vehicle Controls",
+    type: "truefalse",
+    codes: ["1", "2", "3"],
+    prompt: "Going down a long, steep hill, you should select a lower gear so the engine helps to slow the vehicle.",
+    options: ["True", "False"],
+    answer: 0,
+    explanation:
+      "A lower gear uses engine braking, so you don't overheat the brakes by riding them all the way down.",
+    reference: "K53 Vehicle Controls",
+    difficulty: "Medium",
+  },
 ];
+
+/** Hand-written questions plus one generated question per official road sign. */
+export const QUESTIONS: Question[] = [...HAND_WRITTEN, ...SIGN_QUESTIONS];
 
 export function questionsByCategory(cat: Question["category"]): Question[] {
   return QUESTIONS.filter((q) => q.category === cat);

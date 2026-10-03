@@ -6,7 +6,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { GraduationCap, Bike, Car, Truck, ArrowRight, ArrowLeft, Check } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
-import { GridBackdrop, RoadLine } from "@/components/backgrounds";
 import { useStore, type LicenseGoal, type VehicleCode } from "@/lib/store";
 import { useAuth } from "@/lib/auth-store";
 import { PROVINCES } from "@/lib/data/leaderboard";
@@ -25,7 +24,11 @@ export default function OnboardingPage() {
   const [license, setLicense] = React.useState<LicenseGoal>("learners");
   const [code, setCode] = React.useState<VehicleCode>("2");
   const [province, setProvince] = React.useState<string>("Gauteng");
+  const accountName = useAuth((s) => s.currentAccount()?.name ?? "");
   const [username, setUsername] = React.useState("");
+  React.useEffect(() => {
+    if (accountName && accountName !== "Driver") setUsername((u) => u || accountName);
+  }, [accountName]);
   const [testDate, setTestDate] = React.useState("");
 
   const steps = ["Goal", "Vehicle", "Location", "You"];
@@ -43,37 +46,21 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="relative grid min-h-screen place-items-center px-4 py-10">
-      <GridBackdrop />
-      <div className="w-full max-w-lg">
-        <div className="mb-6 flex justify-center">
-          <Logo size={44} />
-        </div>
-
-        {/* Step indicator */}
-        <div className="mb-6 flex items-center justify-center gap-2">
+    <div className="flex min-h-screen flex-col px-5 py-6 sm:px-10">
+      <div className="flex items-center justify-between">
+        <Logo size={28} />
+        <span className="text-sm text-ink-faint">
+          Step {step + 1} of {steps.length}
+        </span>
+      </div>
+      <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center py-10">
+        <div className="mb-8 flex gap-1.5" aria-hidden>
           {steps.map((s, i) => (
-            <div key={s} className="flex items-center gap-2">
-              <div
-                className={cn(
-                  "grid h-8 w-8 place-items-center rounded-full border font-mono text-xs font-bold transition-all",
-                  i < step
-                    ? "border-grass bg-grass/20 text-grass"
-                    : i === step
-                    ? "border-cyan bg-cyan/20 text-cyan shadow-neon"
-                    : "border-asphalt/15 text-ink-faint"
-                )}
-              >
-                {i < step ? <Check className="h-4 w-4" /> : i + 1}
-              </div>
-              {i < steps.length - 1 && (
-                <div className={cn("h-0.5 w-6 rounded-full", i < step ? "bg-grass" : "bg-navy-700")} />
-              )}
-            </div>
+            <div key={s} className={cn("h-1 flex-1 rounded-full transition-colors", i <= step ? "bg-ink" : "bg-navy-700")} />
           ))}
         </div>
 
-        <div className="rounded-2xl border border-asphalt/[0.10] bg-navy-850/80 p-6 shadow-card backdrop-blur">
+        <div>
           <AnimatePresence mode="wait">
             <motion.div
               key={step}
@@ -83,13 +70,13 @@ export default function OnboardingPage() {
               transition={{ duration: 0.2 }}
             >
               {step === 0 && (
-                <StepShell title="What are you working towards?" subtitle="We'll build your path around it.">
+                <StepShell title="What are you studying for?" subtitle="We'll build your learning path around it.">
                   <div className="grid gap-3">
                     {(
                       [
-                        { id: "learners", label: "Learner's Licence", desc: "The written theory test" },
-                        { id: "drivers", label: "Driver's Licence", desc: "Yard + road practical" },
-                        { id: "both", label: "Both", desc: "Full journey, start to finish" },
+                        { id: "learners", label: "Learner's licence", desc: "The computerised theory test" },
+                        { id: "drivers", label: "Driver's licence", desc: "The yard test and road test" },
+                        { id: "both", label: "Both", desc: "From learner's to driver's" },
                       ] as const
                     ).map((o) => (
                       <SelectCard
@@ -106,13 +93,13 @@ export default function OnboardingPage() {
               )}
 
               {step === 1 && (
-                <StepShell title="Which vehicle code?" subtitle="Your rooms and questions adapt to this.">
+                <StepShell title="Which licence code?" subtitle="Lessons and questions adapt to your vehicle. You can change this later.">
                   <div className="grid gap-3">
                     {(
                       [
-                        { id: "1", icon: <Bike className="h-5 w-5" />, label: "Code 1", desc: "Motorcycles (A1/A)" },
-                        { id: "2", icon: <Car className="h-5 w-5" />, label: "Code 2", desc: "Light vehicles (B) — cars & bakkies" },
-                        { id: "3", icon: <Truck className="h-5 w-5" />, label: "Code 3", desc: "Heavy vehicles (C1/C/EC)" },
+                        { id: "1", icon: <Bike className="h-5 w-5" />, label: "Code 1", desc: "Motorcycles" },
+                        { id: "2", icon: <Car className="h-5 w-5" />, label: "Code 2", desc: "Light motor vehicles — cars and bakkies" },
+                        { id: "3", icon: <Truck className="h-5 w-5" />, label: "Code 3", desc: "Heavy motor vehicles — trucks and buses" },
                       ] as const
                     ).map((o) => (
                       <SelectCard
@@ -129,17 +116,17 @@ export default function OnboardingPage() {
               )}
 
               {step === 2 && (
-                <StepShell title="Where are you based?" subtitle="For provincial leaderboards.">
+                <StepShell title="Which province are you in?" subtitle="Used for the provincial leaderboard.">
                   <div className="grid grid-cols-2 gap-2">
                     {PROVINCES.map((p) => (
                       <button
                         key={p}
                         onClick={() => setProvince(p)}
                         className={cn(
-                          "rounded-xl border px-3 py-3 text-sm font-medium transition-all",
+                          "rounded-lg border px-3 py-2.5 text-left text-sm transition-colors",
                           province === p
-                            ? "border-cyan/50 bg-cyan/10 text-cyan shadow-neon"
-                            : "border-asphalt/15 text-ink-muted hover:border-cyan/30"
+                            ? "border-ink bg-navy-850 font-medium text-ink ring-1 ring-ink"
+                            : "border-asphalt/[0.12] bg-navy-850 text-ink-muted hover:border-asphalt/25 hover:text-ink"
                         )}
                       >
                         {p}
@@ -150,34 +137,34 @@ export default function OnboardingPage() {
               )}
 
               {step === 3 && (
-                <StepShell title="Last thing — your driver name" subtitle="This shows on the leaderboard.">
-                  <label className="mb-1 block text-xs font-medium text-ink-muted">Username</label>
+                <StepShell title="Almost done" subtitle="Your display name appears on the leaderboard.">
+                  <label htmlFor="ob-name" className="mb-1.5 block text-sm font-medium text-ink">Display name</label>
                   <input
+                    id="ob-name"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    placeholder="e.g. SpeedySipho"
+                    placeholder="e.g. Sipho M"
                     maxLength={20}
-                    className="w-full rounded-xl border border-asphalt/15 bg-navy-800/60 px-4 py-3 text-ink outline-none placeholder:text-ink-faint focus:border-cyan/50"
+                    className="h-11 w-full rounded-lg border border-asphalt/[0.14] bg-navy-850 px-3.5 text-ink shadow-card outline-none placeholder:text-ink-faint focus:border-cyan/60 focus:ring-2 focus:ring-cyan/15"
                   />
-                  <label className="mb-1 mt-4 block text-xs font-medium text-ink-muted">
-                    Test date (optional) — drives your streak urgency
+                  <label htmlFor="ob-date" className="mb-1.5 mt-5 block text-sm font-medium text-ink">
+                    Test date <span className="font-normal text-ink-faint">(optional)</span>
                   </label>
                   <input
+                    id="ob-date"
                     type="date"
                     value={testDate}
+                    min={new Date().toISOString().slice(0, 10)}
                     onChange={(e) => setTestDate(e.target.value)}
-                    className="w-full rounded-xl border border-asphalt/15 bg-navy-800/60 px-4 py-3 text-ink outline-none focus:border-cyan/50 [color-scheme:light]"
+                    className="h-11 w-full rounded-lg border border-asphalt/[0.14] bg-navy-850 px-3.5 text-ink shadow-card outline-none focus:border-cyan/60 focus:ring-2 focus:ring-cyan/15"
                   />
+                  <p className="mt-1.5 text-xs text-ink-faint">We'll show a countdown and pace your revision.</p>
                 </StepShell>
               )}
             </motion.div>
           </AnimatePresence>
 
-          <div className="mt-6">
-            <RoadLine />
-          </div>
-
-          <div className="mt-5 flex items-center justify-between">
+          <div className="mt-8 flex items-center justify-between">
             <Button
               variant="ghost"
               onClick={() => setStep((s) => Math.max(0, s - 1))}
@@ -190,8 +177,8 @@ export default function OnboardingPage() {
                 Continue <ArrowRight className="h-4 w-4" />
               </Button>
             ) : (
-              <Button variant="success" onClick={finish}>
-                Enter the Academy <ArrowRight className="h-4 w-4" />
+              <Button onClick={finish}>
+                Start learning <ArrowRight className="h-4 w-4" />
               </Button>
             )}
           </div>
@@ -212,8 +199,8 @@ function StepShell({
 }) {
   return (
     <div>
-      <h1 className="font-heading text-2xl font-bold text-ink">{title}</h1>
-      <p className="mb-5 mt-1 text-sm text-ink-muted">{subtitle}</p>
+      <h1 className="text-2xl font-semibold tracking-tight text-ink">{title}</h1>
+      <p className="mb-6 mt-1.5 text-sm text-ink-muted">{subtitle}</p>
       {children}
     </div>
   );
@@ -236,20 +223,20 @@ function SelectCard({
     <button
       onClick={onClick}
       className={cn(
-        "flex items-center gap-3 rounded-xl border px-4 py-3.5 text-left transition-all",
-        active
-          ? "border-cyan/50 bg-cyan/10 shadow-neon"
-          : "border-asphalt/15 bg-navy-800/40 hover:border-cyan/30"
+        "flex items-center gap-3 rounded-lg border bg-navy-850 px-4 py-3.5 text-left shadow-card transition-colors",
+        active ? "border-ink ring-1 ring-ink" : "border-asphalt/[0.12] hover:border-asphalt/25"
       )}
     >
-      <span className={cn("grid h-10 w-10 place-items-center rounded-lg", active ? "bg-cyan/20 text-cyan" : "bg-navy-700 text-ink-muted")}>
+      <span className={cn("grid h-10 w-10 place-items-center rounded-md", active ? "bg-ink text-navy-900" : "bg-navy-800 text-ink-muted")}>
         {icon}
       </span>
       <div className="flex-1">
-        <div className={cn("font-heading font-semibold", active ? "text-cyan" : "text-ink")}>{title}</div>
-        <div className="text-xs text-ink-muted">{desc}</div>
+        <div className="font-medium text-ink">{title}</div>
+        <div className="text-[13px] text-ink-muted">{desc}</div>
       </div>
-      {active && <Check className="h-5 w-5 text-cyan" />}
+      <span className={cn("grid h-5 w-5 place-items-center rounded-full border", active ? "border-ink bg-ink text-navy-900" : "border-asphalt/20")}>
+        {active && <Check className="h-3 w-3" />}
+      </span>
     </button>
   );
 }

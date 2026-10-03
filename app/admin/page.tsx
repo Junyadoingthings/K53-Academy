@@ -17,7 +17,6 @@ import { Logo } from "@/components/brand/logo";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Pill, DifficultyPill } from "@/components/ui/pill";
-import { GridBackdrop } from "@/components/backgrounds";
 import { QUESTIONS } from "@/lib/data/questions";
 import { ROOMS } from "@/lib/data/rooms";
 import { SIGNS } from "@/lib/data/signs";
@@ -49,13 +48,12 @@ export default function AdminPage() {
 
   return (
     <div className="relative min-h-screen">
-      <GridBackdrop />
       <header className="border-b border-asphalt/[0.10] bg-navy-950/60 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 lg:px-8">
           <div className="flex items-center gap-3">
             <Logo size={36} showText={false} />
             <div className="flex items-center gap-2">
-              <span className="font-heading text-lg font-bold text-ink">Admin</span>
+              <span className="text-lg font-semibold text-ink">Admin</span>
               <Pill tone="signal"><ShieldAlert className="h-3 w-3" /> Staff only</Pill>
             </div>
           </div>
@@ -81,7 +79,7 @@ export default function AdminPage() {
                   <span className={`grid h-9 w-9 place-items-center rounded-xl ${toneBox[s.tone]}`}>
                     <s.icon className="h-[18px] w-[18px]" />
                   </span>
-                  <div className="mt-3 font-heading text-2xl font-bold text-ink">{s.value}</div>
+                  <div className="tabular mt-3 text-2xl font-semibold text-ink">{s.value}</div>
                   <div className="text-xs text-ink-muted">{s.label}</div>
                 </CardBody>
               </Card>

@@ -2,97 +2,71 @@
 
 import Link from "next/link";
 import * as Icons from "lucide-react";
-import { motion } from "framer-motion";
-import { Card, CardBody } from "@/components/ui/card";
+import { ArrowRight } from "lucide-react";
 import { Pill } from "@/components/ui/pill";
+import { PageHeader } from "@/components/ui/page-header";
 import { ClientOnly } from "@/components/hydration";
 import { useStore } from "@/lib/store";
 import { PATHS } from "@/lib/data/paths";
+import { roomById } from "@/lib/data/rooms";
 import { cn } from "@/lib/utils";
 
-const accentBorder = {
-  cyan: "hover:border-cyan/50 hover:shadow-neon",
-  amber: "hover:border-amber/50 hover:shadow-neon-amber",
-  grass: "hover:border-grass/50 hover:shadow-neon-green",
-  signal: "hover:border-signal/50 hover:shadow-neon-red",
-} as const;
-
-const accentText = {
-  cyan: "text-cyan bg-cyan/10 border-cyan/30",
-  amber: "text-amber bg-amber/10 border-amber/30",
-  grass: "text-grass bg-grass/10 border-grass/30",
-  signal: "text-signal-soft bg-signal/10 border-signal/30",
-} as const;
+const CODE_NAMES = { "1": "Code 1", "2": "Code 2", "3": "Code 3" } as const;
 
 function PathsGrid() {
   const completedRooms = useStore((s) => s.completedRooms);
+  const myCode = useStore((s) => s.profile.code);
+
+  const sorted = [...PATHS].sort((a, b) => Number(b.codes.includes(myCode)) - Number(a.codes.includes(myCode)));
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
-      {PATHS.map((path, i) => {
-        const Icon = (Icons[path.icon as keyof typeof Icons] ?? Icons.Waypoints) as React.ComponentType<{
+      {sorted.map((path) => {
+        const Icon = (Icons[path.icon as keyof typeof Icons] ?? Icons.Route) as React.ComponentType<{
           className?: string;
         }>;
+        const rooms = path.roomIds.map((id) => roomById(id)).filter(Boolean);
         const done = path.roomIds.filter((r) => completedRooms.includes(r)).length;
         const pct = Math.round((done / path.roomIds.length) * 100);
+        const minutes = rooms.reduce((a, r) => a + (r?.estMinutes ?? 0), 0);
+        const recommended = path.codes.includes(myCode);
         return (
-          <motion.div
+          <Link
             key={path.id}
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.05 }}
+            href={`/paths/${path.slug}`}
+            className="group flex flex-col rounded-xl border border-asphalt/[0.09] bg-navy-850 p-5 shadow-card transition-[border-color,box-shadow] hover:border-asphalt/[0.18] hover:shadow-raised"
           >
-            <Link href={`/paths/${path.slug}`}>
-              <Card className={cn("group h-full transition-all", accentBorder[path.accent])}>
-                <CardBody className="p-5">
-                  <div className="flex items-start gap-4">
-                    <span
-                      className={cn(
-                        "grid h-14 w-14 shrink-0 place-items-center rounded-2xl border",
-                        accentText[path.accent]
-                      )}
-                    >
-                      <Icon className="h-7 w-7" />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="font-mono text-[11px] uppercase tracking-widest text-ink-faint">
-                        {path.subtitle}
-                      </div>
-                      <h3 className="font-heading text-xl font-bold text-ink">{path.title}</h3>
-                    </div>
-                  </div>
-                  <p className="mt-3 text-sm text-ink-muted">{path.description}</p>
+            <div className="flex items-start justify-between gap-3">
+              <span className="grid h-10 w-10 place-items-center rounded-lg bg-navy-800 text-ink">
+                <Icon className="h-5 w-5" />
+              </span>
+              <div className="flex flex-wrap justify-end gap-1.5">
+                {recommended && <Pill tone="cyan">For you</Pill>}
+                {done === path.roomIds.length && <Pill tone="grass">Completed</Pill>}
+              </div>
+            </div>
+            <h3 className="mt-4 text-[17px] font-semibold tracking-tight text-ink">{path.title}</h3>
+            <div className="text-sm text-ink-muted">{path.subtitle}</div>
+            <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-ink-muted">{path.description}</p>
 
-                  <div className="mt-4 flex flex-wrap gap-1.5">
-                    {path.tags.map((t) => (
-                      <Pill key={t}>{t}</Pill>
-                    ))}
-                  </div>
+            <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-faint">
+              <span>{path.roomIds.length} lessons</span>
+              <span>·</span>
+              <span>About {Math.round(minutes / 5) * 5} min</span>
+              <span>·</span>
+              <span>{path.codes.map((c) => CODE_NAMES[c]).join(", ")}</span>
+            </div>
 
-                  <div className="mt-4">
-                    <div className="mb-1.5 flex items-center justify-between text-xs">
-                      <span className="text-ink-muted">
-                        {done}/{path.roomIds.length} rooms
-                      </span>
-                      <span className="font-mono text-ink-faint">{pct}%</span>
-                    </div>
-                    <div className="h-1.5 overflow-hidden rounded-full bg-navy-700">
-                      <div
-                        className={cn(
-                          "h-full rounded-full transition-all",
-                          path.accent === "cyan" && "bg-cyan",
-                          path.accent === "amber" && "bg-amber",
-                          path.accent === "grass" && "bg-grass",
-                          path.accent === "signal" && "bg-signal"
-                        )}
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
-                  </div>
-                </CardBody>
-              </Card>
-            </Link>
-          </motion.div>
+            <div className="mt-auto pt-5">
+              <div className="flex items-center gap-3">
+                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-navy-700">
+                  <div className={cn("h-full rounded-full", pct === 100 ? "bg-grass" : "bg-cyan")} style={{ width: `${pct}%` }} />
+                </div>
+                <span className="tabular text-xs text-ink-muted">{pct}%</span>
+                <ArrowRight className="h-4 w-4 text-ink-faint transition-transform group-hover:translate-x-0.5 group-hover:text-ink" />
+              </div>
+            </div>
+          </Link>
         );
       })}
     </div>
@@ -102,15 +76,11 @@ function PathsGrid() {
 export default function PathsPage() {
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-heading text-3xl font-bold text-ink">Learning Paths</h1>
-        <p className="mt-1 text-ink-muted">
-          Guided journeys that take you from zero to test-ready. Pick your goal and follow the road.
-        </p>
-      </div>
-      <ClientOnly
-        fallback={<div className="h-96 animate-pulse rounded-2xl bg-navy-850/70" />}
-      >
+      <PageHeader
+        title="Learning paths"
+        description="Structured courses that take you from your first lesson to test-ready. Paths for your licence code are shown first."
+      />
+      <ClientOnly fallback={<div className="h-96 animate-pulse rounded-xl bg-navy-850" />}>
         <PathsGrid />
       </ClientOnly>
     </div>

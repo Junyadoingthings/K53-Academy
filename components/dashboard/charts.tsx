@@ -1,117 +1,123 @@
 "use client";
 
-import {
-  Area,
-  AreaChart,
-  PolarAngleAxis,
-  PolarGrid,
-  Radar,
-  RadarChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-} from "recharts";
+import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import { useStore } from "@/lib/store";
 import { useTheme } from "@/components/theme";
+import { cn } from "@/lib/utils";
 
-const CATEGORIES = ["Rules of the Road", "Road Signs & Markings", "Vehicle Controls"] as const;
+/** Learner's test sections and their official pass marks. */
+export const EXAM_SECTIONS = [
+  { cat: "Rules of the Road", label: "Rules of the road", pass: 22, of: 30 },
+  { cat: "Road Signs & Markings", label: "Signs, signals & markings", pass: 23, of: 30 },
+  { cat: "Vehicle Controls", label: "Vehicle controls", pass: 6, of: 8 },
+] as const;
 
-/** Theme-aware chart colours (data hues stay; axis/grid/tooltip flip). */
 function useChartColors() {
   const { isDark } = useTheme();
   return {
-    axis: isDark ? "#8B857B" : "#9A9184",
-    tick: isDark ? "#A8A297" : "#5D5A52",
-    grid: isDark ? "rgba(255,255,255,0.12)" : "rgba(27,28,33,0.12)",
-    tooltipBg: isDark ? "#1E2026" : "#FFFFFF",
-    tooltipBorder: isDark ? "rgba(255,255,255,0.12)" : "rgba(27,28,33,0.12)",
-    tooltipText: isDark ? "#F0EEE9" : "#5D5A52",
+    bar: isDark ? "#ECEDEF" : "#141518",
+    today: isDark ? "#F0444A" : "#D61F26",
+    axis: isDark ? "#70747C" : "#84878F",
+    tooltipBg: isDark ? "#1C1E22" : "#FFFFFF",
+    tooltipBorder: isDark ? "rgba(255,255,255,0.1)" : "rgba(20,21,24,0.1)",
+    tooltipText: isDark ? "#ECEDEF" : "#141518",
   };
 }
 
+/** XP earned per day over the last 7 days — real activity only. */
 export function WeeklyXpChart() {
   const xpLog = useStore((s) => s.xpLog);
-  const xp = useStore((s) => s.xp);
   const c = useChartColors();
 
-  // Build last-7-days XP from the log; seed with a gentle demo curve so the
-  // chart looks alive before the user has a week of history.
-  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const now = new Date();
-  const buckets = new Array(7).fill(0);
+  const data = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(now);
+    d.setDate(now.getDate() - (6 - i));
+    return { key: d.toDateString(), day: d.toLocaleDateString("en-ZA", { weekday: "short" }), xp: 0 };
+  });
   for (const e of xpLog) {
-    const d = new Date(e.at);
-    const diff = Math.floor((now.getTime() - d.getTime()) / 86_400_000);
-    if (diff >= 0 && diff < 7) buckets[6 - diff] += e.amount;
+    const slot = data.find((d) => d.key === new Date(e.at).toDateString());
+    if (slot) slot.xp += e.amount;
   }
-  const baseline = [40, 90, 60, 120, 80, 150, Math.max(60, xp % 200)];
-  const data = days.map((d, i) => ({ day: d, xp: buckets[i] + baseline[i] }));
+  const total = data.reduce((a, d) => a + d.xp, 0);
 
   return (
-    <ResponsiveContainer width="100%" height={180}>
-      <AreaChart data={data} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
-        <defs>
-          <linearGradient id="xpFill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#E4002B" stopOpacity={0.5} />
-            <stop offset="100%" stopColor="#E4002B" stopOpacity={0} />
-          </linearGradient>
-        </defs>
-        <XAxis
-          dataKey="day"
-          tick={{ fill: c.axis, fontSize: 11 }}
-          axisLine={false}
-          tickLine={false}
-        />
-        <Tooltip
-          contentStyle={{
-            background: c.tooltipBg,
-            border: `1px solid ${c.tooltipBorder}`,
-            borderRadius: 12,
-            fontSize: 12,
-          }}
-          labelStyle={{ color: c.tooltipText }}
-          cursor={{ stroke: "#E4002B", strokeOpacity: 0.2 }}
-        />
-        <Area
-          type="monotone"
-          dataKey="xp"
-          stroke="#E4002B"
-          strokeWidth={2.5}
-          fill="url(#xpFill)"
-          dot={{ r: 3, fill: "#E4002B" }}
-        />
-      </AreaChart>
-    </ResponsiveContainer>
+    <div>
+      <div className="mb-4 flex items-baseline gap-2">
+        <span className="tabular text-2xl font-semibold tracking-tight text-ink">{total}</span>
+        <span className="text-sm text-ink-muted">XP this week</span>
+      </div>
+      {total === 0 ? (
+        <div className="grid h-[150px] place-items-center rounded-lg border border-dashed border-asphalt/[0.14] px-6 text-center text-sm text-ink-faint">
+          Complete a lesson or practice round to start your chart.
+        </div>
+      ) : (
+        <ResponsiveContainer width="100%" height={150}>
+          <BarChart data={data} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
+            <XAxis dataKey="day" tick={{ fill: c.axis, fontSize: 11 }} axisLine={false} tickLine={false} />
+            <Tooltip
+              cursor={{ fill: "rgba(127,127,127,0.08)" }}
+              contentStyle={{
+                background: c.tooltipBg,
+                border: `1px solid ${c.tooltipBorder}`,
+                borderRadius: 8,
+                fontSize: 12,
+                color: c.tooltipText,
+              }}
+              formatter={(v: number) => [`${v} XP`, ""]}
+              separator=""
+            />
+            <Bar dataKey="xp" radius={[4, 4, 0, 0]} maxBarSize={36} fill={c.bar} />
+          </BarChart>
+        </ResponsiveContainer>
+      )}
+    </div>
   );
 }
 
-export function AccuracyRadar() {
+/** Accuracy per exam section vs. the pass mark you need on the day. */
+export function ExamReadiness({ className }: { className?: string }) {
   const stats = useStore((s) => s.categoryStats);
-  const col = useChartColors();
-  const data = CATEGORIES.map((c) => {
-    const s = stats[c];
-    const acc = s && s.total > 0 ? Math.round((s.correct / s.total) * 100) : 0;
-    return {
-      cat: c.replace(" & Markings", "").replace("Rules of the ", ""),
-      acc: acc || 20,
-    };
-  });
-
   return (
-    <ResponsiveContainer width="100%" height={200}>
-      <RadarChart data={data} outerRadius={70}>
-        <PolarGrid stroke={col.grid} />
-        <PolarAngleAxis dataKey="cat" tick={{ fill: col.tick, fontSize: 10 }} />
-        <Radar dataKey="acc" stroke="#0B9C56" fill="#0B9C56" fillOpacity={0.35} strokeWidth={2} />
-        <Tooltip
-          contentStyle={{
-            background: col.tooltipBg,
-            border: `1px solid ${col.tooltipBorder}`,
-            borderRadius: 12,
-            fontSize: 12,
-          }}
-        />
-      </RadarChart>
-    </ResponsiveContainer>
+    <div className={cn("space-y-5", className)}>
+      {EXAM_SECTIONS.map((sec) => {
+        const s = stats[sec.cat];
+        const answered = s?.total ?? 0;
+        const acc = answered > 0 ? Math.round((s!.correct / answered) * 100) : null;
+        const need = Math.round((sec.pass / sec.of) * 100);
+        const ready = acc != null && acc >= need && answered >= 10;
+        return (
+          <div key={sec.cat}>
+            <div className="mb-2 flex items-baseline justify-between gap-3 text-sm">
+              <span className="min-w-0 truncate font-medium text-ink">{sec.label}</span>
+              <span className="tabular shrink-0 whitespace-nowrap text-xs text-ink-muted">
+                {acc == null ? (
+                  "—"
+                ) : (
+                  <>
+                    <span className={cn("font-semibold", ready ? "text-grass" : "text-ink")}>{acc}%</span>
+                    <span className="text-ink-faint"> · {answered} Qs</span>
+                  </>
+                )}
+              </span>
+            </div>
+            <div className="relative h-2 rounded-full bg-navy-700">
+              <div
+                className={cn("h-full rounded-full transition-[width] duration-700", ready ? "bg-grass" : "bg-ink")}
+                style={{ width: `${acc ?? 0}%` }}
+              />
+              <div
+                className="absolute -top-1 h-4 w-0.5 rounded bg-cyan"
+                style={{ left: `${need}%` }}
+                title={`Pass mark: ${sec.pass}/${sec.of} (${need}%)`}
+              />
+            </div>
+            <div className="mt-1.5 text-[11px] text-ink-faint">
+              Pass mark {sec.pass}/{sec.of} ({need}%)
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
 }

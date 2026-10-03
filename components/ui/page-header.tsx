@@ -52,7 +52,7 @@ export function Segmented<T extends string>({
             aria-selected={active}
             onClick={() => onChange(o.id)}
             className={cn(
-              "flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+              "flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors sm:px-3",
               active ? "bg-navy-850 text-ink shadow-card ring-1 ring-asphalt/[0.08]" : "text-ink-muted hover:text-ink"
             )}
           >

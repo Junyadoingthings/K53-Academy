@@ -45,10 +45,10 @@ export function XpToaster() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -28, scale: 0.9 }}
             transition={{ type: "spring", stiffness: 300, damping: 18 }}
-            className="flex items-center gap-1.5 rounded-full border border-cyan/30 bg-cyan px-3 py-1.5 text-white shadow-neon"
+            className="flex items-center gap-1.5 rounded-full bg-ink px-3 py-1.5 text-navy-900 shadow-pop"
           >
             <Zap className="h-3.5 w-3.5" fill="currentColor" />
-            <span className="font-mono text-sm font-bold">+{g.amount} XP</span>
+            <span className="tabular text-sm font-semibold">+{g.amount} XP</span>
           </motion.div>
         ))}
       </AnimatePresence>

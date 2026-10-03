@@ -176,6 +176,13 @@
     position: relative;
   }
 
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
   /* Section eyebrow label */
   .eyebrow {
     @apply text-xs font-semibold uppercase tracking-[0.08em] text-ink-faint;

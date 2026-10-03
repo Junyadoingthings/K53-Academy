@@ -15,10 +15,10 @@ export const PLANS = {
     price: 0,
     period: "forever",
     features: [
-      "3 rooms per path",
-      "1 mock test per week",
-      "Core question bank",
-      "Road sign trainer",
+      "Every lesson and learning path",
+      "Unlimited practice and mock tests",
+      "The full road sign library",
+      "Progress saved on your device",
     ],
   },
   premium: {
@@ -28,11 +28,10 @@ export const PLANS = {
     priceYear: 499,
     period: "month",
     features: [
-      "Everything unlocked",
-      "Unlimited mock tests",
-      "Advanced analytics & weak-area radar",
-      "Offline PWA downloads",
-      "Ad-free",
+      "Progress synced across devices",
+      "Detailed analytics by topic",
+      "Offline study on your phone",
+      "Priority instructor answers",
     ],
   },
   instructor: {

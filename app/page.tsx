@@ -101,7 +101,7 @@ const FAQ = [
   },
   {
     q: "Is it free?",
-    a: "Yes — lessons, the full sign library and practice are free to start. Premium (R79/month) adds unlimited mock tests and detailed analytics.",
+    a: "Yes. Lessons, the full sign library, practice and mock tests are all free during early access. A Premium plan with extra features is on the way.",
   },
   {
     q: "Do I need to create an account?",

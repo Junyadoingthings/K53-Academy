@@ -1,138 +1,111 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
-import {
-  Flame,
-  Coins,
-  BookOpenCheck,
-  Target,
-  ChevronRight,
-  Sparkles,
-  CalendarClock,
-  ArrowRight,
-  Hand,
-  CheckCircle2,
-} from "lucide-react";
+import * as Icons from "lucide-react";
+import { ArrowRight, Check, CheckCircle2, ChevronRight, Flame, Sparkles } from "lucide-react";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Pill, DifficultyPill } from "@/components/ui/pill";
+import { PageHeader } from "@/components/ui/page-header";
 import { StatTile } from "@/components/dashboard/stat-tile";
-import { StreakNudge } from "@/components/dashboard/motivation";
-import { WeeklyXpChart, AccuracyRadar } from "@/components/dashboard/charts";
-import { LevelRing } from "@/components/gamification/level-ring";
-import { XpBar } from "@/components/gamification/xp-bar";
-import { StreakFlame } from "@/components/gamification/streak-flame";
+import { WeeklyXpChart, ExamReadiness } from "@/components/dashboard/charts";
 import { BadgeMedal } from "@/components/gamification/badge-medal";
 import { CountUp } from "@/components/gamification/count-up";
-import { RoadLine } from "@/components/backgrounds";
 import { ClientOnly } from "@/components/hydration";
-import { useStore, useLevel } from "@/lib/store";
+import { useStore } from "@/lib/store";
+import { useAuth } from "@/lib/auth-store";
 import { PATHS } from "@/lib/data/paths";
 import { ROOMS, roomById } from "@/lib/data/rooms";
 import { BADGES } from "@/lib/data/badges";
-import { daysUntil } from "@/lib/utils";
+import { cn, daysUntil } from "@/lib/utils";
+
+const CODE_LABEL = { "1": "Code 1 · Motorcycle", "2": "Code 2 · Light motor vehicle", "3": "Code 3 · Heavy motor vehicle" };
+
+function greeting() {
+  const h = new Date().getHours();
+  return h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
+}
 
 function DashboardInner() {
   const profile = useStore((s) => s.profile);
   const streak = useStore((s) => s.streak);
-  const coins = useStore((s) => s.coins);
+  const lastStudyDay = useStore((s) => s.lastStudyDay);
   const completedRooms = useStore((s) => s.completedRooms);
   const badges = useStore((s) => s.badges);
   const categoryStats = useStore((s) => s.categoryStats);
   const dailyDone = useStore((s) => s.dailyChallengeDoneOn);
   const touchStreak = useStore((s) => s.touchStreak);
-  const level = useLevel();
 
-  const name = profile.username || "Driver";
-  const codeLabel = { "1": "Code 1 · Motorcycle", "2": "Code 2 · Light Vehicle", "3": "Code 3 · Heavy Vehicle" }[
-    profile.code
-  ];
+  const account = useAuth((s) => s.currentAccount());
+  const name = profile.username || (account && !account.guest ? account.name.split(" ")[0] : "");
+  const today = new Date().toISOString().slice(0, 10);
+  const checkedIn = lastStudyDay === today;
+  const didDaily = dailyDone === today;
 
-  // Active path = first path matching the user's code.
   const activePath = PATHS.find((p) => p.codes.includes(profile.code)) ?? PATHS[0];
-  const pathRooms = activePath.roomIds;
-  const donePathRooms = pathRooms.filter((r) => completedRooms.includes(r));
-  const pathPct = Math.round((donePathRooms.length / pathRooms.length) * 100);
-  const nextRoomId = pathRooms.find((r) => !completedRooms.includes(r)) ?? pathRooms[0];
-  const nextRoom = roomById(nextRoomId)!;
+  const pathRooms = activePath.roomIds.map((id) => roomById(id)!).filter(Boolean);
+  const doneCount = pathRooms.filter((r) => completedRooms.includes(r.id)).length;
+  const pathPct = Math.round((doneCount / pathRooms.length) * 100);
+  const nextRoom = pathRooms.find((r) => !completedRooms.includes(r.id)) ?? pathRooms[0];
 
   const totalCorrect = Object.values(categoryStats).reduce((a, c) => a + c.correct, 0);
   const totalAns = Object.values(categoryStats).reduce((a, c) => a + c.total, 0);
-  const accuracy = totalAns > 0 ? Math.round((totalCorrect / totalAns) * 100) : 0;
+  const accuracy = totalAns > 0 ? Math.round((totalCorrect / totalAns) * 100) : null;
   const dTest = daysUntil(profile.testDate);
-  const today = new Date().toISOString().slice(0, 10);
-  const didDaily = dailyDone === today;
 
   return (
-    <div className="space-y-6">
-      {/* Hero header */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-        <Card className="relative overflow-hidden" glow="cyan">
-          <div className="pointer-events-none absolute inset-0 bg-radial-cyan" />
-          <div className="pointer-events-none absolute -right-10 top-0 h-40 w-40 rounded-full bg-cyan/10 blur-3xl" />
-          <CardBody className="relative flex flex-col gap-5 p-6 sm:flex-row sm:items-center">
-            <LevelRing size={92} />
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-xs uppercase tracking-widest text-cyan">
-                  {level.rank.name}
-                </span>
-                <Pill tone="amber">{codeLabel}</Pill>
-              </div>
-              <h1 className="mt-1 flex items-center gap-2 font-heading text-2xl font-bold text-ink sm:text-3xl">
-                Welcome back, {name}
-                <motion.span
-                  animate={{ rotate: [0, 18, -8, 14, 0] }}
-                  transition={{ duration: 1.4, repeat: Infinity, repeatDelay: 1.6 }}
-                  className="inline-flex origin-[70%_80%] text-amber"
-                >
-                  <Hand className="h-6 w-6" />
-                </motion.span>
-              </h1>
-              <p className="mt-0.5 text-sm text-ink-muted">
-                {pathPct < 100
-                  ? `You're ${pathPct}% through ${activePath.title}. Keep the momentum.`
-                  : `You've cleared ${activePath.title}! Ready for the next challenge?`}
-              </p>
-              <div className="mt-4 max-w-md">
-                <XpBar />
-              </div>
-            </div>
-            <div className="flex gap-2 sm:flex-col">
-              <Button onClick={touchStreak} variant="amber" className="flex-1">
-                <Flame className="h-4 w-4" fill="currentColor" /> Check in
+    <div className="space-y-8">
+      <PageHeader
+        eyebrow={CODE_LABEL[profile.code]}
+        title={name ? `${greeting()}, ${name}` : greeting()}
+        description={
+          dTest != null && dTest >= 0
+            ? `${dTest === 0 ? "Your test is today" : `${dTest} day${dTest === 1 ? "" : "s"} until your test`}. ${
+                pathPct < 100 ? `You're ${pathPct}% through ${activePath.title}.` : `You've finished ${activePath.title}.`
+              }`
+            : pathPct < 100
+              ? `You're ${pathPct}% through ${activePath.title}. A short lesson today keeps you on track.`
+              : `You've finished ${activePath.title}. Time to prove it in a mock test.`
+        }
+        actions={
+          <>
+            {checkedIn ? (
+              <span className="inline-flex h-10 items-center gap-1.5 px-2 text-sm text-ink-muted">
+                <CheckCircle2 className="h-4 w-4 text-grass" /> Checked in today
+              </span>
+            ) : (
+              <Button variant="outline" onClick={touchStreak}>
+                <Flame className="h-4 w-4 text-amber" /> Check in
               </Button>
-              <Link href={`/rooms/${nextRoom.slug}`} className="flex-1">
-                <Button variant="outline" className="w-full">
-                  Resume <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
-            </div>
-          </CardBody>
-        </Card>
-      </motion.div>
+            )}
+            <Link href={`/rooms/${nextRoom.slug}`}>
+              <Button>
+                Continue <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
+          </>
+        }
+      />
 
-      {/* Motivation / streak nudge */}
-      <StreakNudge />
-
-      {/* Stat tiles */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatTile
           icon="Flame"
           tone="amber"
-          label="Day streak"
-          value={<CountUp value={streak} />}
-          sub={streak > 0 ? "Keep it burning" : "Start today"}
+          label="Study streak"
+          value={
+            <>
+              <CountUp value={streak} /> <span className="text-base font-normal text-ink-muted">day{streak === 1 ? "" : "s"}</span>
+            </>
+          }
+          sub={checkedIn ? "Done for today" : "Check in to keep it going"}
         />
         <StatTile
           icon="BookOpenCheck"
-          tone="cyan"
-          label="Rooms cleared"
+          label="Lessons completed"
           value={
             <>
               <CountUp value={completedRooms.length} />
-              <span className="text-ink-faint">/{ROOMS.length}</span>
+              <span className="text-base font-normal text-ink-faint"> / {ROOMS.length}</span>
             </>
           }
         />
@@ -140,156 +113,171 @@ function DashboardInner() {
           icon="Target"
           tone="grass"
           label="Accuracy"
-          value={<><CountUp value={accuracy} />%</>}
-          sub={`${totalCorrect} correct`}
+          value={accuracy == null ? "—" : <><CountUp value={accuracy} />%</>}
+          sub={totalAns > 0 ? `${totalCorrect} of ${totalAns} correct` : "Answer some questions"}
         />
         <StatTile
-          icon={dTest != null ? "CalendarClock" : "Coins"}
-          tone={dTest != null ? "signal" : "amber"}
-          label={dTest != null ? "Days to test" : "RoadCoins"}
-          value={dTest != null ? <CountUp value={Math.max(0, dTest)} /> : <CountUp value={coins} />}
-          sub={dTest != null ? "Stay sharp" : "Spend on freezes"}
+          icon="CalendarClock"
+          tone="cyan"
+          label="Test date"
+          value={dTest != null && dTest >= 0 ? <><CountUp value={dTest} /> <span className="text-base font-normal text-ink-muted">days</span></> : "Not set"}
+          sub={dTest != null && dTest >= 0 ? new Date(profile.testDate!).toLocaleDateString("en-ZA", { day: "numeric", month: "long" }) : "Add it in your profile"}
         />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Continue path */}
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="lg:col-span-2">
-          <Card glow="cyan">
-            <CardHeader className="flex items-center justify-between">
-              <CardTitle>Continue your path</CardTitle>
-              <Link href={`/paths/${activePath.slug}`} className="text-xs text-cyan hover:underline">
+        <div className="min-w-0 space-y-6 lg:col-span-2">
+          {/* Continue learning */}
+          <Card>
+            <CardHeader className="flex flex-row items-start justify-between gap-4">
+              <div>
+                <CardTitle>{activePath.title}</CardTitle>
+                <p className="mt-1 text-sm text-ink-muted">{activePath.subtitle}</p>
+              </div>
+              <Link href={`/paths/${activePath.slug}`} className="shrink-0 text-sm text-ink-muted hover:text-ink">
                 View path
               </Link>
             </CardHeader>
             <CardBody>
-              <div className="mb-4 flex items-center justify-between text-sm">
-                <span className="font-medium text-ink">{activePath.title}</span>
-                <span className="font-mono text-ink-muted">
-                  {donePathRooms.length}/{pathRooms.length} rooms
+              <div className="flex items-center gap-3">
+                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-navy-700">
+                  <div className="h-full rounded-full bg-cyan transition-[width] duration-700" style={{ width: `${pathPct}%` }} />
+                </div>
+                <span className="tabular text-xs text-ink-muted">
+                  {doneCount}/{pathRooms.length}
                 </span>
               </div>
-              <div className="mb-5 h-2 overflow-hidden rounded-full bg-navy-700">
-                <motion.div
-                  className="h-full rounded-full bg-gradient-to-r from-cyan-deep to-cyan"
-                  animate={{ width: `${pathPct}%` }}
-                />
-              </div>
 
-              <div className="rounded-xl border border-cyan/20 bg-cyan/[0.04] p-4">
-                <div className="mb-2 flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-cyan" />
-                  <span className="font-mono text-[11px] uppercase tracking-widest text-cyan">
-                    Next up
-                  </span>
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <div className="font-heading text-lg font-semibold text-ink">
-                      {nextRoom.title}
-                    </div>
-                    <div className="mt-1 flex items-center gap-2">
-                      <DifficultyPill level={nextRoom.difficulty} />
-                      <Pill>{nextRoom.estMinutes} min</Pill>
-                      <Pill tone="cyan">+{nextRoom.xp} XP</Pill>
-                    </div>
-                  </div>
-                  <Link href={`/rooms/${nextRoom.slug}`}>
-                    <Button>
-                      Enter <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </Link>
-                </div>
-              </div>
+              <ol className="mt-5 divide-y divide-asphalt/[0.07] rounded-lg border border-asphalt/[0.08]">
+                {pathRooms.map((room, i) => {
+                  const done = completedRooms.includes(room.id);
+                  const isNext = room.id === nextRoom.id && !done;
+                  const Icon = (Icons[room.icon as keyof typeof Icons] ?? Icons.BookOpen) as React.ComponentType<{ className?: string }>;
+                  return (
+                    <li key={room.id}>
+                      <Link
+                        href={`/rooms/${room.slug}`}
+                        className={cn(
+                          "flex items-center gap-3 px-4 py-3 transition-colors hover:bg-navy-800/60",
+                          isNext && "bg-navy-800/40"
+                        )}
+                      >
+                        <span
+                          className={cn(
+                            "grid h-8 w-8 shrink-0 place-items-center rounded-full text-xs font-semibold",
+                            done
+                              ? "bg-grass/10 text-grass"
+                              : isNext
+                                ? "bg-cyan text-white"
+                                : "bg-navy-800 text-ink-faint"
+                          )}
+                        >
+                          {done ? <Check className="h-4 w-4" /> : isNext ? <Icon className="h-4 w-4" /> : i + 1}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className={cn("block truncate text-sm", done ? "text-ink-muted" : "font-medium text-ink")}>
+                            {room.title}
+                          </span>
+                          <span className="block text-xs text-ink-faint">
+                            {room.estMinutes} min · {room.xp} XP
+                          </span>
+                        </span>
+                        {isNext ? (
+                          <span className="hidden text-xs font-medium text-cyan sm:block">Up next</span>
+                        ) : null}
+                        <ChevronRight className="h-4 w-4 text-ink-faint" />
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ol>
             </CardBody>
           </Card>
-        </motion.div>
 
-        {/* Daily challenge */}
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-          <Card glow="amber" className="h-full">
+          <Card>
+            <CardHeader>
+              <CardTitle>Activity</CardTitle>
+            </CardHeader>
+            <CardBody>
+              <WeeklyXpChart />
+            </CardBody>
+          </Card>
+        </div>
+
+        <div className="min-w-0 space-y-6">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Exam readiness</CardTitle>
+              <Pill>Learner's test</Pill>
+            </CardHeader>
+            <CardBody>
+              <ExamReadiness />
+              <Link href="/mock-test" className="mt-5 block">
+                <Button variant="outline" className="w-full">
+                  Take a mock test
+                </Button>
+              </Link>
+            </CardBody>
+          </Card>
+
+          <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <span className="grid h-7 w-7 place-items-center rounded-lg bg-amber/15 text-amber">
-                  <Sparkles className="h-4 w-4" />
-                </span>
-                Daily Challenge
+                <Sparkles className="h-4 w-4 text-amber" /> Daily challenge
               </CardTitle>
             </CardHeader>
             <CardBody>
               <p className="text-sm text-ink-muted">
-                5 quick questions, bonus <span className="font-semibold text-amber">+90 XP</span>.
-                Resets at midnight SAST.
+                Five quick questions from across the syllabus. Earn <span className="font-medium text-ink">+90 XP</span>.
               </p>
-              <div className="my-4">
-                <RoadLine />
-              </div>
               {didDaily ? (
-                <div className="flex items-center justify-center gap-1.5 rounded-xl border border-grass/30 bg-grass/[0.06] p-3 text-center text-sm text-grass">
-                  <CheckCircle2 className="h-4 w-4" /> Done for today — come back tomorrow!
+                <div className="mt-4 flex items-center gap-2 rounded-lg bg-grass/10 px-3 py-2.5 text-sm text-grass">
+                  <CheckCircle2 className="h-4 w-4" /> Done for today. New one tomorrow.
                 </div>
               ) : (
-                <Link href="/practice?mode=daily">
-                  <Button variant="amber" className="w-full">
+                <Link href="/practice?mode=daily" className="mt-4 block">
+                  <Button variant="dark" className="w-full">
                     Start challenge
                   </Button>
                 </Link>
               )}
             </CardBody>
           </Card>
-        </motion.div>
-      </div>
 
-      {/* Charts */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Weekly XP</CardTitle>
-          </CardHeader>
-          <CardBody>
-            <WeeklyXpChart />
-          </CardBody>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Accuracy by category</CardTitle>
-          </CardHeader>
-          <CardBody>
-            <AccuracyRadar />
-          </CardBody>
-        </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Badges</CardTitle>
+              <Link href="/profile" className="text-sm text-ink-muted hover:text-ink">
+                {badges.length} of {BADGES.length}
+              </Link>
+            </CardHeader>
+            <CardBody>
+              <div className="grid grid-cols-5 gap-2">
+                {BADGES.slice(0, 10).map((b) => (
+                  <BadgeMedal key={b.id} badge={b} unlocked={badges.includes(b.id)} size={44} />
+                ))}
+              </div>
+            </CardBody>
+          </Card>
+        </div>
       </div>
-
-      {/* Badges */}
-      <Card>
-        <CardHeader className="flex items-center justify-between">
-          <CardTitle>Your badges</CardTitle>
-          <Link href="/profile" className="text-xs text-cyan hover:underline">
-            {badges.length}/{BADGES.length} earned
-          </Link>
-        </CardHeader>
-        <CardBody>
-          <div className="flex flex-wrap gap-3">
-            {BADGES.map((b) => (
-              <BadgeMedal key={b.id} badge={b} unlocked={badges.includes(b.id)} size={56} />
-            ))}
-          </div>
-        </CardBody>
-      </Card>
     </div>
   );
 }
 
 function Skeleton() {
   return (
-    <div className="space-y-6">
-      <div className="h-44 animate-pulse rounded-2xl bg-navy-850/70" />
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+    <div className="space-y-8">
+      <div className="space-y-2">
+        <div className="h-4 w-40 animate-pulse rounded bg-navy-800" />
+        <div className="h-8 w-72 animate-pulse rounded bg-navy-800" />
+      </div>
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-28 animate-pulse rounded-2xl bg-navy-850/70" />
+          <div key={i} className="h-28 animate-pulse rounded-xl bg-navy-850" />
         ))}
       </div>
-      <div className="h-64 animate-pulse rounded-2xl bg-navy-850/70" />
+      <div className="h-72 animate-pulse rounded-xl bg-navy-850" />
     </div>
   );
 }

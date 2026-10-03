@@ -1,16 +1,15 @@
 "use client";
 
 import * as React from "react";
-import { motion } from "framer-motion";
 import * as Icons from "lucide-react";
 import type { BadgeDef } from "@/lib/data/types";
 import { cn } from "@/lib/utils";
 
 const accentMap = {
-  cyan: { ring: "border-cyan/50", bg: "bg-cyan/10", text: "text-cyan", glow: "shadow-neon" },
-  amber: { ring: "border-amber/50", bg: "bg-amber/10", text: "text-amber", glow: "shadow-neon-amber" },
-  grass: { ring: "border-grass/50", bg: "bg-grass/10", text: "text-grass", glow: "shadow-neon-green" },
-  signal: { ring: "border-signal/50", bg: "bg-signal/10", text: "text-signal-soft", glow: "shadow-neon-red" },
+  cyan: "bg-cyan/10 text-cyan ring-cyan/25",
+  amber: "bg-amber/10 text-amber ring-amber/30",
+  grass: "bg-grass/10 text-grass ring-grass/25",
+  signal: "bg-signal/10 text-signal ring-signal/25",
 } as const;
 
 export function BadgeMedal({
@@ -22,27 +21,25 @@ export function BadgeMedal({
   unlocked: boolean;
   size?: number;
 }) {
-  const a = accentMap[badge.accent];
   const Icon = (Icons[badge.icon as keyof typeof Icons] ?? Icons.Award) as React.ComponentType<{
     className?: string;
   }>;
 
   return (
-    <motion.div
-      whileHover={unlocked ? { scale: 1.06, rotate: -2 } : {}}
+    <div
       className={cn(
-        "relative grid place-items-center rounded-2xl border transition-all",
-        unlocked ? cn(a.ring, a.bg, a.glow) : "border-asphalt/[0.06] bg-navy-800/50 grayscale"
+        "relative grid place-items-center rounded-full ring-1 ring-inset transition-colors",
+        unlocked ? accentMap[badge.accent] : "bg-navy-800 text-ink-faint/60 ring-asphalt/[0.06]"
       )}
       style={{ width: size, height: size }}
-      title={`${badge.name} — ${badge.description}`}
+      title={`${badge.name} — ${unlocked ? badge.description : badge.criteria}`}
     >
-      <Icon className={cn(size > 56 ? "h-7 w-7" : "h-5 w-5", unlocked ? a.text : "text-ink-faint")} />
+      <Icon className={size > 56 ? "h-6 w-6" : "h-5 w-5"} />
       {!unlocked && (
-        <div className="absolute -bottom-1 -right-1 grid h-5 w-5 place-items-center rounded-full border border-asphalt/15 bg-navy-900">
+        <span className="absolute -bottom-0.5 -right-0.5 grid h-5 w-5 place-items-center rounded-full bg-navy-850 ring-1 ring-asphalt/[0.1]">
           <Icons.Lock className="h-2.5 w-2.5 text-ink-faint" />
-        </div>
+        </span>
       )}
-    </motion.div>
+    </div>
   );
 }

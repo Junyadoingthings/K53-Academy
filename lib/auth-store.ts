@@ -59,7 +59,7 @@ export const useAuth = create<AuthState>()(
       signUp: async ({ name, email, password, province = "Gauteng" }) => {
         const clean = email.trim().toLowerCase();
         if (!clean || !password) return { ok: false, error: "Email and password are required." };
-        if (password.length < 4) return { ok: false, error: "Password must be at least 4 characters." };
+        if (password.length < 8) return { ok: false, error: "Password must be at least 8 characters." };
         if (get().accounts.some((a) => a.email === clean))
           return { ok: false, error: "An account with that email already exists." };
         const acc: Account = {

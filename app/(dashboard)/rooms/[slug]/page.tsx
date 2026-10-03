@@ -4,7 +4,7 @@ import * as React from "react";
 import { useParams, notFound } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowLeft, Clock, Zap, Lightbulb, PlayCircle, Trophy, RotateCcw, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, Clock, Lightbulb, RotateCcw, XCircle } from "lucide-react";
 import { Card, CardBody } from "@/components/ui/card";
 import { ConfettiBurst } from "@/components/effects/confetti";
 import { VideoSection } from "@/components/rooms/video-section";
@@ -15,45 +15,60 @@ import { QuizEngine, type QuizResult } from "@/components/quiz/quiz-engine";
 import { CountUp } from "@/components/gamification/count-up";
 import { ClientOnly } from "@/components/hydration";
 import { useStore } from "@/lib/store";
-import { roomBySlug } from "@/lib/data/rooms";
+import { roomBySlug, ROOMS } from "@/lib/data/rooms";
+import { PATHS } from "@/lib/data/paths";
 import { questionById } from "@/lib/data/questions";
 import type { Room } from "@/lib/data/types";
 import { XP_REWARDS } from "@/lib/xp-engine";
 
 type Phase = "learn" | "quiz" | "result";
+const PASS_PCT = 60;
 
 function RoomView({ slug }: { slug: string }) {
   const room = roomBySlug(slug);
   const completeRoom = useStore((s) => s.completeRoom);
   const touchStreak = useStore((s) => s.touchStreak);
+  const myCode = useStore((s) => s.profile.code);
   const alreadyDone = useStore((s) => (room ? s.completedRooms.includes(room.id) : false));
   const [phase, setPhase] = React.useState<Phase>("learn");
   const [result, setResult] = React.useState<QuizResult | null>(null);
+  const [attempt, setAttempt] = React.useState(0);
+
+  React.useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, [phase]);
 
   if (!room) return notFound();
   const questions = room.questionIds.map((id) => questionById(id)!).filter(Boolean);
   const videos = videosForRoom(room.slug);
 
+  // The path this lesson belongs to (prefer the learner's own code).
+  const path =
+    PATHS.find((p) => p.roomIds.includes(room.id) && p.codes.includes(myCode)) ??
+    PATHS.find((p) => p.roomIds.includes(room.id));
+  const nextInPath = path ? roomById(path.roomIds[path.roomIds.indexOf(room.id) + 1]) : undefined;
+
   function finish(r: QuizResult) {
     setResult(r);
     setPhase("result");
-    const pass = r.correct / r.total >= 0.6;
-    if (pass) {
+    if ((r.correct / r.total) * 100 >= PASS_PCT) {
       completeRoom(room!.id, r.perfect);
       touchStreak();
     }
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-5">
-      <Link href="/paths" className="inline-flex items-center gap-1.5 text-sm text-ink-muted hover:text-cyan">
-        <ArrowLeft className="h-4 w-4" /> Back
+    <div className="mx-auto max-w-2xl">
+      <Link
+        href={path ? `/paths/${path.slug}` : "/paths"}
+        className="inline-flex items-center gap-1.5 text-sm text-ink-muted hover:text-ink"
+      >
+        <ArrowLeft className="h-4 w-4" /> {path ? path.title : "Learning paths"}
       </Link>
 
-      {/* Header */}
-      <div>
-        <div className="flex items-center gap-2">
-          <Pill tone="cyan">{room.category}</Pill>
+      <header className="mt-6">
+        <div className="flex flex-wrap items-center gap-2">
+          <Pill>{room.category}</Pill>
           <DifficultyPill level={room.difficulty} />
           {alreadyDone && (
             <Pill tone="grass">
@@ -61,121 +76,177 @@ function RoomView({ slug }: { slug: string }) {
             </Pill>
           )}
         </div>
-        <h1 className="mt-2 font-heading text-3xl font-bold text-ink">{room.title}</h1>
-        <p className="mt-1 text-ink-muted">{room.tagline}</p>
-        <div className="mt-3 flex items-center gap-3 text-sm text-ink-faint">
-          <span className="inline-flex items-center gap-1"><Clock className="h-4 w-4" /> {room.estMinutes} min</span>
-          <span className="inline-flex items-center gap-1 text-cyan"><Zap className="h-4 w-4" /> {room.xp} XP</span>
+        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-ink">{room.title}</h1>
+        <p className="mt-2 text-ink-muted">{room.tagline}</p>
+        <div className="mt-4 flex items-center gap-4 text-sm text-ink-faint">
+          <span className="inline-flex items-center gap-1.5">
+            <Clock className="h-4 w-4" /> {room.estMinutes} min
+          </span>
+          <span>{questions.length} questions</span>
+          <span>{room.xp} XP</span>
         </div>
-      </div>
+      </header>
 
-      {phase === "learn" && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-          <Card glow="cyan">
-            <CardBody className="p-5">
-              <div className="mb-2 font-mono text-[11px] uppercase tracking-widest text-cyan">
-                Intro
+      <div className="mt-8">
+        {phase === "learn" && (
+          <motion.article initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <p className="text-[17px] leading-relaxed text-ink">{room.intro}</p>
+
+            <div className="mt-10 space-y-10">
+              {room.sections.map((sec, i) => (
+                <section key={i}>
+                  <div className="flex items-baseline gap-3">
+                    <span className="tabular text-sm font-medium text-ink-faint">{String(i + 1).padStart(2, "0")}</span>
+                    <h2 className="text-xl font-semibold tracking-tight text-ink">{sec.heading}</h2>
+                  </div>
+                  <p className="mt-3 leading-relaxed text-ink-muted">{sec.body}</p>
+                  {sec.tip && (
+                    <div className="mt-4 flex gap-3 rounded-lg border-l-2 border-amber bg-amber/[0.07] px-4 py-3 text-sm">
+                      <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-amber" />
+                      <div>
+                        <div className="font-medium text-ink">Exam tip</div>
+                        <div className="mt-0.5 text-ink-muted">{sec.tip}</div>
+                      </div>
+                    </div>
+                  )}
+                </section>
+              ))}
+            </div>
+
+            {videos.length > 0 && (
+              <div className="mt-10">
+                <VideoSection videos={videos} />
               </div>
-              <p className="leading-relaxed text-ink">{room.intro}</p>
+            )}
+
+            <div className="sticky bottom-20 z-10 mt-10 lg:bottom-6">
+              <div className="flex items-center justify-between gap-4 rounded-xl border border-asphalt/[0.1] bg-navy-850/95 p-3 pl-4 shadow-pop backdrop-blur">
+                <div className="text-sm">
+                  <div className="font-medium text-ink">Ready to check what you learnt?</div>
+                  <div className="text-ink-faint">
+                    {questions.length} questions · {PASS_PCT}% to complete
+                  </div>
+                </div>
+                <Button onClick={() => setPhase("quiz")}>
+                  Start quiz <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </motion.article>
+        )}
+
+        {phase === "quiz" && (
+          <Card>
+            <CardBody className="p-5 sm:p-7">
+              <QuizEngine key={attempt} questions={questions} onComplete={finish} />
             </CardBody>
           </Card>
+        )}
 
-          {room.sections.map((sec, i) => (
-            <Card key={i}>
-              <CardBody className="p-5">
-                <h3 className="font-heading text-lg font-semibold text-ink">{sec.heading}</h3>
-                <p className="mt-2 leading-relaxed text-ink-muted">{sec.body}</p>
-                {sec.tip && (
-                  <div className="mt-3 flex gap-2 rounded-xl border border-amber/20 bg-amber/[0.05] p-3 text-sm text-amber-soft">
-                    <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-amber" />
-                    <span>{sec.tip}</span>
-                  </div>
-                )}
-              </CardBody>
-            </Card>
-          ))}
-
-          {videos.length > 0 && <VideoSection videos={videos} />}
-
-          <div className="sticky bottom-24 lg:bottom-6">
-            <Button size="lg" className="w-full" onClick={() => setPhase("quiz")}>
-              <PlayCircle className="h-5 w-5" /> Start the quiz ({questions.length} questions)
-            </Button>
-          </div>
-        </motion.div>
-      )}
-
-      {phase === "quiz" && (
-        <Card>
-          <CardBody className="p-5">
-            <QuizEngine questions={questions} onComplete={finish} />
-          </CardBody>
-        </Card>
-      )}
-
-      {phase === "result" && result && (
-        <ResultCard room={room} result={result} onRetry={() => setPhase("quiz")} newlyCompleted={!alreadyDone} />
-      )}
+        {phase === "result" && result && (
+          <ResultCard
+            room={room}
+            result={result}
+            newlyCompleted={!alreadyDone}
+            nextRoom={nextInPath}
+            onReview={() => setPhase("learn")}
+            onRetry={() => {
+              setAttempt((a) => a + 1);
+              setPhase("quiz");
+            }}
+          />
+        )}
+      </div>
     </div>
   );
+}
+
+function roomById(id?: string): Room | undefined {
+  return id ? ROOMS.find((r) => r.id === id) : undefined;
 }
 
 function ResultCard({
   room,
   result,
-  onRetry,
   newlyCompleted,
+  nextRoom,
+  onRetry,
+  onReview,
 }: {
   room: Room;
   result: QuizResult;
-  onRetry: () => void;
   newlyCompleted: boolean;
+  nextRoom?: Room;
+  onRetry: () => void;
+  onReview: () => void;
 }) {
   const pct = Math.round((result.correct / result.total) * 100);
-  const pass = pct >= 60;
+  const pass = pct >= PASS_PCT;
   const xpEarned =
     (pass && newlyCompleted ? room.xp + (result.perfect ? XP_REWARDS.perfectRoom : 0) : 0) +
     result.correct * XP_REWARDS.questionCorrect;
 
   return (
-    <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }}>
-      {pass && <ConfettiBurst count={90} origin="top" />}
-      <Card glow={pass ? "grass" : "signal"}>
-        <CardBody className="p-8 text-center">
-          <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-grass/10 text-grass">
-            <Trophy className="h-8 w-8" />
-          </div>
-          <h2 className="mt-4 font-heading text-2xl font-bold text-ink">
-            {result.perfect ? "Flawless!" : pass ? "Room cleared!" : "Almost there"}
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+      {pass && <ConfettiBurst count={60} origin="top" />}
+      <Card>
+        <CardBody className="p-8 text-center sm:p-10">
+          {pass ? (
+            <CheckCircle2 className="mx-auto h-12 w-12 text-grass" />
+          ) : (
+            <XCircle className="mx-auto h-12 w-12 text-ink-faint" />
+          )}
+          <h2 className="mt-4 text-2xl font-semibold tracking-tight text-ink">
+            {result.perfect ? "Perfect score" : pass ? "Lesson complete" : "Not quite there yet"}
           </h2>
-          <p className="mt-1 text-ink-muted">
-            You scored{" "}
-            <span className={pass ? "text-grass" : "text-signal-soft"}>
-              {result.correct}/{result.total}
-            </span>{" "}
-            ({pct}%)
+          <p className="mt-2 text-ink-muted">
+            You got <span className="font-medium text-ink">{result.correct} of {result.total}</span> correct ({pct}%).
+            {!pass && ` You need ${PASS_PCT}% to complete this lesson.`}
           </p>
 
-          <div className="mx-auto mt-5 flex max-w-xs items-center justify-center gap-2 rounded-xl border border-cyan/20 bg-cyan/[0.05] py-3">
-            <Zap className="h-5 w-5 text-cyan" fill="currentColor" />
-            <span className="font-mono text-2xl font-bold text-cyan">
-              +<CountUp value={xpEarned} /> XP
-            </span>
+          <div className="mx-auto mt-6 grid max-w-xs grid-cols-2 divide-x divide-asphalt/[0.08] rounded-lg border border-asphalt/[0.09]">
+            <div className="p-3">
+              <div className="tabular text-xl font-semibold text-ink">{pct}%</div>
+              <div className="text-xs text-ink-faint">Score</div>
+            </div>
+            <div className="p-3">
+              <div className="tabular text-xl font-semibold text-ink">
+                +<CountUp value={xpEarned} />
+              </div>
+              <div className="text-xs text-ink-faint">XP earned</div>
+            </div>
           </div>
 
-          {!pass && (
-            <p className="mt-3 text-sm text-ink-faint">
-              You need 60% to clear the room. Review the material and try again.
-            </p>
-          )}
-
-          <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
-            <Button variant="outline" onClick={onRetry}>
-              <RotateCcw className="h-4 w-4" /> Retry quiz
-            </Button>
-            <Link href="/paths">
-              <Button className="w-full">Continue journey</Button>
-            </Link>
+          <div className="mt-8 flex flex-col gap-2 sm:flex-row sm:justify-center">
+            {pass ? (
+              <>
+                <Button variant="outline" onClick={onRetry}>
+                  <RotateCcw className="h-4 w-4" /> Retake quiz
+                </Button>
+                {nextRoom ? (
+                  <Link href={`/rooms/${nextRoom.slug}`}>
+                    <Button className="w-full">
+                      Next: {nextRoom.title} <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                ) : (
+                  <Link href="/mock-test">
+                    <Button className="w-full">
+                      Try a mock test <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                )}
+              </>
+            ) : (
+              <>
+                <Button variant="outline" onClick={onReview}>
+                  Review the lesson
+                </Button>
+                <Button onClick={onRetry}>
+                  <RotateCcw className="h-4 w-4" /> Try again
+                </Button>
+              </>
+            )}
           </div>
         </CardBody>
       </Card>
@@ -187,7 +258,7 @@ export default function RoomPage() {
   const params = useParams();
   const slug = String(params.slug);
   return (
-    <ClientOnly fallback={<div className="mx-auto h-96 max-w-2xl animate-pulse rounded-2xl bg-navy-850/70" />}>
+    <ClientOnly fallback={<div className="mx-auto h-96 max-w-2xl animate-pulse rounded-xl bg-navy-850" />}>
       <RoomView slug={slug} />
     </ClientOnly>
   );

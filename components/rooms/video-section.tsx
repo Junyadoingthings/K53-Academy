@@ -32,10 +32,10 @@ export function VideoSection({ videos }: { videos: RoomVideo[] }) {
     <Card>
       <CardBody className="p-5">
         <div className="mb-1 flex items-center gap-2">
-          <span className="grid h-7 w-7 place-items-center rounded-lg bg-cyan/10 text-cyan">
+          <span className="grid h-7 w-7 place-items-center rounded-md bg-navy-800 text-ink">
             <Youtube className="h-4 w-4" />
           </span>
-          <h3 className="font-heading text-lg font-semibold text-ink">Watch &amp; learn</h3>
+          <h3 className="text-base font-semibold text-ink">Watch &amp; learn</h3>
         </div>
         <p className="mb-4 text-sm text-ink-muted">
           Video lessons on the rules of the road from South African K53 educators. Tap any to play.
@@ -51,7 +51,7 @@ export function VideoSection({ videos }: { videos: RoomVideo[] }) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.04 }}
-              className="group overflow-hidden rounded-xl border border-asphalt/[0.10] bg-navy-800/40 text-left transition-all hover:border-cyan/40 hover:shadow-neon"
+              className="group overflow-hidden rounded-xl border border-asphalt/[0.10] bg-navy-800/40 text-left transition-all hover:border-asphalt/20 hover:shadow-raised"
             >
               <div className="relative aspect-video overflow-hidden bg-navy-900">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -63,7 +63,7 @@ export function VideoSection({ videos }: { videos: RoomVideo[] }) {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-asphalt-950/70 via-transparent to-transparent" />
                 <span className="absolute inset-0 grid place-items-center">
-                  <span className="grid h-12 w-12 place-items-center rounded-full bg-cyan text-white shadow-neon transition-transform group-hover:scale-110">
+                  <span className="grid h-12 w-12 place-items-center rounded-full bg-white/95 text-asphalt-950 shadow-pop transition-transform group-hover:scale-105">
                     <Play className="ml-0.5 h-5 w-5" fill="currentColor" />
                   </span>
                 </span>
@@ -72,7 +72,7 @@ export function VideoSection({ videos }: { videos: RoomVideo[] }) {
                 </span>
               </div>
               <div className="p-3">
-                <div className="line-clamp-2 text-sm font-semibold text-ink group-hover:text-cyan">
+                <div className="line-clamp-2 text-sm font-semibold text-ink group-hover:underline">
                   {v.title}
                 </div>
                 <div className="mt-1 line-clamp-2 text-xs text-ink-muted">{v.description}</div>
@@ -107,7 +107,7 @@ export function VideoSection({ videos }: { videos: RoomVideo[] }) {
             >
               <div className="flex items-start justify-between gap-3 border-b border-asphalt/[0.10] px-4 py-3">
                 <div className="min-w-0">
-                  <div className="truncate font-heading text-sm font-bold text-ink">{active.title}</div>
+                  <div className="truncate text-sm font-semibold text-ink">{active.title}</div>
                   <div className="font-mono text-[11px] text-ink-faint">{active.source}</div>
                 </div>
                 <button

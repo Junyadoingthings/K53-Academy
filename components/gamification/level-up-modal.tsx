@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowUpRight, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { useStore, useLevel } from "@/lib/store";
 import { ConfettiBurst } from "@/components/effects/confetti";
 import { Button } from "@/components/ui/button";
@@ -53,11 +53,11 @@ export function LevelUpModal() {
             animate={{ scale: 1, y: 0, opacity: 1 }}
             exit={{ scale: 0.8, opacity: 0 }}
             transition={{ type: "spring", stiffness: 200, damping: 16 }}
-            className="relative w-full max-w-sm overflow-hidden rounded-3xl border border-cyan/30 bg-navy-850 p-8 text-center shadow-neon"
+            className="relative w-full max-w-sm overflow-hidden rounded-2xl border border-asphalt/[0.1] bg-navy-850 p-8 text-center shadow-pop"
           >
-            <div className="pointer-events-none absolute inset-0 bg-radial-cyan" />
+
             <div className="relative">
-              <div className="mx-auto flex w-fit items-center gap-1.5 rounded-full border border-amber/30 bg-amber/10 px-3 py-1 font-mono text-[11px] uppercase tracking-widest text-amber">
+              <div className="mx-auto flex w-fit items-center gap-1.5 rounded-full bg-amber/10 px-3 py-1 text-xs font-medium text-amber">
                 <Sparkles className="h-3 w-3" /> Level up
               </div>
 
@@ -65,22 +65,22 @@ export function LevelUpModal() {
                 initial={{ scale: 0.4, rotate: -10 }}
                 animate={{ scale: 1, rotate: 0 }}
                 transition={{ type: "spring", stiffness: 260, damping: 12, delay: 0.1 }}
-                className="mx-auto mt-4 grid h-28 w-28 place-items-center rounded-full border-4 border-cyan bg-navy-900 shadow-neon"
+                className="mx-auto mt-5 grid h-28 w-28 place-items-center rounded-full border-4 border-cyan bg-navy-850"
               >
                 <div>
-                  <div className="font-mono text-[10px] uppercase tracking-widest text-ink-faint">LVL</div>
-                  <div className="font-heading text-5xl font-extrabold text-cyan">{level.level}</div>
+                  <div className="text-[11px] font-medium uppercase tracking-wide text-ink-faint">Level</div>
+                  <div className="tabular text-5xl font-semibold text-ink">{level.level}</div>
                 </div>
               </motion.div>
 
-              <h2 className="mt-5 font-heading text-2xl font-bold text-ink">You levelled up!</h2>
+              <h2 className="mt-5 text-2xl font-semibold tracking-tight text-ink">You reached a new level</h2>
               <p className="mt-1 text-ink-muted">
                 New rank unlocked:{" "}
                 <span className={`font-semibold ${level.rank.color}`}>{level.rank.name}</span>
               </p>
 
               <Button className="mt-6 w-full" onClick={() => setOpen(false)}>
-                Keep driving <ArrowUpRight className="h-4 w-4" />
+                Continue
               </Button>
             </div>
           </motion.div>
