@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import * as Icons from "lucide-react";
+import { Circle } from "lucide-react";
+import { iconFor } from "@/components/ui/icon";
 import { Logo } from "@/components/brand/logo";
 import { NAV_SECTIONS } from "./nav-items";
 import { XpBar } from "@/components/gamification/xp-bar";
@@ -28,9 +29,7 @@ export function Sidebar() {
             </div>
             <ul className="space-y-0.5">
               {section.items.map((item) => {
-                const Icon = (Icons[item.icon as keyof typeof Icons] ?? Icons.Circle) as React.ComponentType<{
-                  className?: string;
-                }>;
+                const Icon = iconFor(item.icon, Circle);
                 const active = pathname === item.href || pathname.startsWith(item.href + "/");
                 return (
                   <li key={item.href}>

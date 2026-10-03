@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import * as Icons from "lucide-react";
+import { Award, Lock } from "lucide-react";
+import { iconFor } from "@/components/ui/icon";
 import type { BadgeDef } from "@/lib/data/types";
 import { cn } from "@/lib/utils";
 
@@ -21,9 +22,7 @@ export function BadgeMedal({
   unlocked: boolean;
   size?: number;
 }) {
-  const Icon = (Icons[badge.icon as keyof typeof Icons] ?? Icons.Award) as React.ComponentType<{
-    className?: string;
-  }>;
+  const Icon = iconFor(badge.icon, Award);
 
   return (
     <div
@@ -37,7 +36,7 @@ export function BadgeMedal({
       <Icon className={size > 56 ? "h-6 w-6" : "h-5 w-5"} />
       {!unlocked && (
         <span className="absolute -bottom-0.5 -right-0.5 grid h-5 w-5 place-items-center rounded-full bg-navy-850 ring-1 ring-asphalt/[0.1]">
-          <Icons.Lock className="h-2.5 w-2.5 text-ink-faint" />
+          <Lock className="h-2.5 w-2.5 text-ink-faint" />
         </span>
       )}
     </div>

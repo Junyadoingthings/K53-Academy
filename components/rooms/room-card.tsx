@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import * as Icons from "lucide-react";
+import { BookOpen } from "lucide-react";
+import { iconFor } from "@/components/ui/icon";
 import type { Room } from "@/lib/data/types";
 import { DifficultyPill } from "@/components/ui/pill";
 import { CheckCircle2, Lock } from "lucide-react";
@@ -17,9 +18,7 @@ export function RoomCard({
   locked?: boolean;
   index?: number;
 }) {
-  const Icon = (Icons[room.icon as keyof typeof Icons] ?? Icons.BookOpen) as React.ComponentType<{
-    className?: string;
-  }>;
+  const Icon = iconFor(room.icon, BookOpen);
 
   const inner = (
     <div

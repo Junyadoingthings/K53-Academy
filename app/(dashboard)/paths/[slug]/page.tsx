@@ -2,7 +2,8 @@
 
 import { useParams, notFound } from "next/navigation";
 import Link from "next/link";
-import * as Icons from "lucide-react";
+import { Route } from "lucide-react";
+import { iconFor } from "@/components/ui/icon";
 import { ArrowLeft, Check, ChevronRight, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Pill, DifficultyPill } from "@/components/ui/pill";
@@ -17,9 +18,7 @@ function PathDetail({ slug }: { slug: string }) {
   const path = pathBySlug(slug);
   if (!path) return notFound();
 
-  const Icon = (Icons[path.icon as keyof typeof Icons] ?? Icons.Route) as React.ComponentType<{
-    className?: string;
-  }>;
+  const Icon = iconFor(path.icon, Route);
   const rooms = path.roomIds.map((id) => roomById(id)!).filter(Boolean);
   const done = rooms.filter((r) => completedRooms.includes(r.id)).length;
   const pct = Math.round((done / rooms.length) * 100);

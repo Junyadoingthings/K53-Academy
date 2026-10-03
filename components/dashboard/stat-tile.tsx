@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import * as Icons from "lucide-react";
+import { Circle } from "lucide-react";
+import { iconFor } from "@/components/ui/icon";
 import { cn } from "@/lib/utils";
 
 const tones = {
@@ -25,9 +26,7 @@ export function StatTile({
   sub?: string;
   tone?: keyof typeof tones;
 }) {
-  const Icon = (Icons[icon as keyof typeof Icons] ?? Icons.Circle) as React.ComponentType<{
-    className?: string;
-  }>;
+  const Icon = iconFor(icon, Circle);
   return (
     <div className="rounded-xl border border-asphalt/[0.09] bg-navy-850 p-4 shadow-card">
       <div className="flex items-center gap-2 text-[13px] text-ink-muted">

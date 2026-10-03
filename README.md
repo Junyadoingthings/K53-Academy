@@ -39,13 +39,12 @@ Built for learners preparing for **Code 1 (motorcycle)**, **Code 2 (light motor 
 
 ## Tech Stack
 
-> Update this section to match your actual setup.
-
-- **Framework:** `<React / Next.js / Vue / Svelte>`
-- **Styling:** `<Tailwind CSS / CSS Modules / styled-components>`
-- **State:** `<Context / Zustand / Redux>`
+- **Framework:** Next.js 14 (App Router) + TypeScript
+- **Styling:** Tailwind CSS with CSS-variable design tokens (light and dark)
+- **State:** Zustand, persisted to the browser (accounts and progress are device-local)
+- **Motion & charts:** Framer Motion, Recharts
+- **Road signs:** official SADC / SARTSM artwork, public domain (see `public/signs/SOURCE.md`)
 - **Hosting:** Netlify
-- **PWA:** Web app manifest + service worker
 
 ---
 
@@ -60,8 +59,8 @@ Built for learners preparing for **Code 1 (motorcycle)**, **Code 2 (light motor 
 
 ```bash
 # Clone the repo
-git clone https://github.com/<your-username>/k53-academy.git
-cd k53-academy
+git clone https://github.com/Junyadoingthings/K53-Academy.git
+cd K53-Academy
 
 # Install dependencies
 npm install
@@ -70,7 +69,7 @@ npm install
 npm run dev
 ```
 
-Open [ https://k53academy.netlify.app/) in your browser.
+Open [http://localhost:5300](http://localhost:5300) in your browser.
 
 ### Build for production
 
@@ -84,15 +83,15 @@ npm run preview
 ## Project Structure
 
 ```
-k53-academy/
-├── public/            # Static assets, manifest, icons
-├── src/
-│   ├── components/    # Reusable UI components
-│   ├── rooms/         # Study room pages
-│   ├── data/          # Question banks, room content, video sources
-│   ├── lib/           # XP, streaks, progress logic
-│   └── styles/        # Global styles and theme
-└── netlify.toml       # Deploy configuration
+K53-Academy/
+├── app/               # Routes: landing, auth, dashboard pages, API
+├── components/        # UI primitives, layout, quiz engine, signs, gamification
+├── lib/
+│   ├── data/          # Rooms, paths, questions, signs (+ generated sign questions)
+│   ├── store.ts       # XP, streaks, progress (Zustand)
+│   └── auth-store.ts  # Device-local accounts
+├── public/signs/      # 104 SADC road sign SVGs (public domain)
+└── tailwind.config.ts # Design tokens
 ```
 
 ---
@@ -110,7 +109,7 @@ k53-academy/
 
 ## Contributing
 
-Contributions are welcome — especially question-bank corrections and translations.
+Contributions are welcome — especially question-bank corrections and translations. Sign names and meanings live in `lib/data/signs.ts`; every sign automatically gets a practice question.
 
 1. Fork the repo
 2. Create a branch (`git checkout -b feature/your-feature`)

@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import * as Icons from "lucide-react";
+import { Award } from "lucide-react";
+import { iconFor } from "@/components/ui/icon";
 import { useStore } from "@/lib/store";
 import { badgeById } from "@/lib/data/badges";
 import { cn } from "@/lib/utils";
@@ -28,8 +29,8 @@ export function BadgeToast() {
   }, [lastBadge, clear]);
 
   const Icon = badge
-    ? ((Icons[badge.icon as keyof typeof Icons] ?? Icons.Award) as React.ComponentType<{ className?: string }>)
-    : Icons.Award;
+    ? iconFor(badge.icon, Award)
+    : Award;
 
   return (
     <AnimatePresence>

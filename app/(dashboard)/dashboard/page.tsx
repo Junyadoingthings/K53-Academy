@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import * as Icons from "lucide-react";
+import { BookOpen } from "lucide-react";
+import { iconFor } from "@/components/ui/icon";
 import { ArrowRight, Check, CheckCircle2, ChevronRight, Flame, Sparkles } from "lucide-react";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -152,7 +153,7 @@ function DashboardInner() {
                 {pathRooms.map((room, i) => {
                   const done = completedRooms.includes(room.id);
                   const isNext = room.id === nextRoom.id && !done;
-                  const Icon = (Icons[room.icon as keyof typeof Icons] ?? Icons.BookOpen) as React.ComponentType<{ className?: string }>;
+                  const Icon = iconFor(room.icon, BookOpen);
                   return (
                     <li key={room.id}>
                       <Link

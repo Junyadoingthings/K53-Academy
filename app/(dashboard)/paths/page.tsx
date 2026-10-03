@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import * as Icons from "lucide-react";
+import { Route } from "lucide-react";
+import { iconFor } from "@/components/ui/icon";
 import { ArrowRight } from "lucide-react";
 import { Pill } from "@/components/ui/pill";
 import { PageHeader } from "@/components/ui/page-header";
@@ -22,9 +23,7 @@ function PathsGrid() {
   return (
     <div className="grid gap-4 md:grid-cols-2">
       {sorted.map((path) => {
-        const Icon = (Icons[path.icon as keyof typeof Icons] ?? Icons.Route) as React.ComponentType<{
-          className?: string;
-        }>;
+        const Icon = iconFor(path.icon, Route);
         const rooms = path.roomIds.map((id) => roomById(id)).filter(Boolean);
         const done = path.roomIds.filter((r) => completedRooms.includes(r)).length;
         const pct = Math.round((done / path.roomIds.length) * 100);
