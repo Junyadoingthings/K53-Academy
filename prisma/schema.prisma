@@ -1,0 +1,259 @@
+// K53 Academy — production data model.
+// Demo build runs on local content + Zustand; enable this by installing
+// prisma/@prisma/client, setting DATABASE_URL, and running `prisma migrate`.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL") // Supabase pooled + direct connections
+}
+
+enum LicenseGoal {
+  LEARNERS
+  DRIVERS
+  BOTH
+}
+
+enum VehicleCode {
+  CODE1 // motorcycle
+  CODE2 // light
+  CODE3 // heavy
+}
+
+enum Plan {
+  FREE
+  PREMIUM
+  INSTRUCTOR
+}
+
+enum QCategory {
+  RULES
+  SIGNS
+  CONTROLS
+}
+
+enum QType {
+  MCQ
+  TRUEFALSE
+  IMAGE
+  SCENARIO
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String?  @unique
+  phone     String?  @unique
+  createdAt DateTime @default(now())
+
+  profile       Profile?
+  roomProgress  RoomProgress[]
+  attempts      QuestionAttempt[]
+  mockResults   MockTestResult[]
+  userBadges    UserBadge[]
+  streak        Streak?
+  subscription  Subscription?
+  discussions   Discussion[]
+  instructorFor Profile[]         @relation("InstructorStudents")
+}
+
+model Profile {
+  id           String       @id @default(cuid())
+  userId       String       @unique
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  username     String       @unique
+  license      LicenseGoal  @default(LEARNERS)
+  code         VehicleCode  @default(CODE2)
+  province     String       @default("Gauteng")
+  testDate     DateTime?
+  xp           Int          @default(0)
+  coins        Int          @default(50)
+  avatarBorder String?
+  instructorId String?
+  instructor   User?        @relation("InstructorStudents", fields: [instructorId], references: [id])
+
+  @@index([province])
+  @@index([xp])
+}
+
+model Path {
+  id       String @id @default(cuid())
+  slug     String @unique
+  title    String
+  subtitle String
+  accent   String
+  codes    VehicleCode[]
+  rooms    Room[]
+}
+
+model Room {
+  id            String       @id @default(cuid())
+  slug          String       @unique
+  title         String
+  tagline       String
+  category      String
+  codes         VehicleCode[]
+  difficulty    Difficulty
+  estMinutes    Int
+  xp            Int
+  icon          String
+  intro         String
+  sections      Json
+  prerequisites String[]
+  pathId        String?
+  path          Path?          @relation(fields: [pathId], references: [id])
+  questions     Question[]
+  progress      RoomProgress[]
+}
+
+model RoomProgress {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roomId      String
+  room        Room      @relation(fields: [roomId], references: [id])
+  completed   Boolean   @default(false)
+  perfect     Boolean   @default(false)
+  bestScore   Int       @default(0)
+  completedAt DateTime?
+
+  @@unique([userId, roomId])
+}
+
+model Question {
+  id          String     @id @default(cuid())
+  category    QCategory
+  type        QType
+  codes       VehicleCode[]
+  prompt      String
+  signId      String?
+  options     String[]
+  answer      Int
+  explanation String
+  reference   String
+  difficulty  Difficulty
+  roomId      String?
+  room        Room?             @relation(fields: [roomId], references: [id])
+  attempts    QuestionAttempt[]
+  discussions Discussion[]
+  reportCount Int               @default(0)
+}
+
+model QuestionAttempt {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id])
+  correct    Boolean
+  createdAt  DateTime @default(now())
+  // SM-2 spaced repetition state
+  repetitions Int     @default(0)
+  easeFactor  Float   @default(2.5)
+  interval    Int     @default(0)
+  lapses      Int     @default(0)
+  dueDate     DateTime @default(now())
+
+  @@unique([userId, questionId])
+  @@index([userId, dueDate])
+}
+
+model MockTest {
+  id        String           @id @default(cuid())
+  code      VehicleCode
+  createdAt DateTime         @default(now())
+  results   MockTestResult[]
+}
+
+model MockTestResult {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mockTestId String
+  mockTest   MockTest @relation(fields: [mockTestId], references: [id])
+  score      Int
+  total      Int
+  passed     Boolean
+  sections   Json
+  takenAt    DateTime @default(now())
+}
+
+model Badge {
+  id          String      @id @default(cuid())
+  slug        String      @unique
+  name        String
+  description String
+  icon        String
+  accent      String
+  users       UserBadge[]
+}
+
+model UserBadge {
+  id       String   @id @default(cuid())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badgeId  String
+  badge    Badge    @relation(fields: [badgeId], references: [id])
+  earnedAt DateTime @default(now())
+
+  @@unique([userId, badgeId])
+}
+
+model Streak {
+  id           String    @id @default(cuid())
+  userId       String    @unique
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  current      Int       @default(0)
+  longest      Int       @default(0)
+  freezes      Int       @default(1)
+  lastStudyDay DateTime?
+}
+
+model Leaderboard {
+  id       String @id @default(cuid())
+  scope    String // "global" | "provincial"
+  province String?
+  snapshot Json
+  updatedAt DateTime @updatedAt
+}
+
+model Subscription {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan       Plan     @default(FREE)
+  paystackRef String?
+  active     Boolean  @default(true)
+  renewsAt   DateTime?
+}
+
+model Discussion {
+  id         String   @id @default(cuid())
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id])
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  body       String
+  createdAt  DateTime @default(now())
+}
+
+model Sign {
+  id       String @id @default(cuid())
+  code     String @unique
+  name     String
+  category String
+  meaning  String
+  shape    String
+  fill     String
+  stroke   String
+  symbol   Json
+}

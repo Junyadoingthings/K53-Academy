@@ -1,0 +1,219 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Theming via CSS variables. Traffic-light accents (red/yellow/green) stay
+ * fixed in both modes; only surfaces, text and hairline borders flip.
+ * Values are space-separated RGB triplets so Tailwind's `/<alpha>` works.
+ */
+:root {
+  color-scheme: light;
+  --nv-950: 255 255 255; /* glass bars */
+  --nv-900: 251 246 238; /* page (warm cream) */
+  --nv-850: 255 255 255; /* cards */
+  --nv-800: 243 236 224; /* inputs / hovers / tracks */
+  --nv-700: 232 222 207; /* borders / tracks */
+  --nv-600: 217 204 184;
+  --ink: 28 29 34;
+  --ink-muted: 93 90 82;
+  --ink-faint: 154 145 132;
+  --hairline: 27 28 33; /* dark line on light surfaces */
+  --glass: 255 255 255;
+  --grid: 27 28 33;
+  --sb-track: 243 236 224;
+  --sb-thumb: 217 204 184;
+}
+
+.dark {
+  color-scheme: dark;
+  --nv-950: 13 15 20; /* glass bars */
+  --nv-900: 14 16 21; /* page (deep asphalt) */
+  --nv-850: 23 26 32; /* cards */
+  --nv-800: 31 35 43; /* inputs / hovers / tracks */
+  --nv-700: 43 48 58; /* borders / tracks */
+  --nv-600: 60 66 78;
+  --ink: 240 238 233;
+  --ink-muted: 168 162 151;
+  --ink-faint: 112 108 100;
+  --hairline: 255 255 255; /* light line on dark surfaces */
+  --glass: 16 18 23;
+  --grid: 255 255 255;
+  --sb-track: 23 26 32;
+  --sb-thumb: 52 58 70;
+}
+
+@layer base {
+  * {
+    border-color: rgb(var(--hairline) / 0.1);
+  }
+
+  body {
+    @apply bg-navy-900 text-ink font-sans antialiased;
+    background-image:
+      radial-gradient(820px circle at 12% -6%, rgba(228, 0, 43, 0.08), transparent 55%),
+      radial-gradient(720px circle at 92% -2%, rgba(230, 138, 0, 0.09), transparent 52%);
+    background-attachment: fixed;
+  }
+
+  ::selection {
+    background: rgba(228, 0, 43, 0.22);
+    color: #fff;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+  ::-webkit-scrollbar-track {
+    background: rgb(var(--sb-track));
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgb(var(--sb-thumb));
+    border-radius: 8px;
+    border: 3px solid rgb(var(--nv-900));
+  }
+}
+
+@layer components {
+  /* Faint road grid on the backdrop */
+  .grid-backdrop {
+    background-image: linear-gradient(to right, rgb(var(--grid) / 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(var(--grid) / 0.05) 1px, transparent 1px);
+    background-size: 44px 44px;
+    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 100%);
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 100%);
+  }
+
+  /* A dark asphalt band (hero / splash / section accents) — dark in both modes */
+  .asphalt-band {
+    background:
+      radial-gradient(900px circle at 20% -20%, rgba(228, 0, 43, 0.22), transparent 55%),
+      radial-gradient(700px circle at 90% 120%, rgba(230, 138, 0, 0.18), transparent 55%),
+      linear-gradient(180deg, #1e2026, #141519);
+  }
+
+  /* Dashed yellow centre road line */
+  .road-line {
+    background-image: repeating-linear-gradient(
+      to right,
+      #ffc12e 0,
+      #ffc12e 30px,
+      transparent 30px,
+      transparent 60px
+    );
+    background-size: 200px 100%;
+  }
+
+  /* White lane marking (for dark bands) */
+  .lane-line {
+    background-image: repeating-linear-gradient(
+      to right,
+      #ffffff 0,
+      #ffffff 26px,
+      transparent 26px,
+      transparent 54px
+    );
+    background-size: 200px 100%;
+  }
+
+  .neon-text {
+    text-shadow: 0 2px 22px rgba(228, 0, 43, 0.28);
+  }
+
+  /* Fiery red→gold gradient text for headlines */
+  .text-gradient {
+    background-image: linear-gradient(100deg, #e4002b 0%, #ff5c1a 45%, #ffb400 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Sweeping highlight for hero CTAs */
+  .shine {
+    position: relative;
+    overflow: hidden;
+  }
+  .shine::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -60%;
+    height: 100%;
+    width: 45%;
+    transform: skewX(-20deg);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+    animation: shine-sweep 3.2s ease-in-out infinite;
+  }
+  @keyframes shine-sweep {
+    0%,
+    60% {
+      left: -60%;
+    }
+    100% {
+      left: 130%;
+    }
+  }
+
+  /* Animated conic gradient ring (wraps a rounded element) */
+  .rainbow-ring {
+    position: relative;
+  }
+  .rainbow-ring::before {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    padding: 2px;
+    background: conic-gradient(from 0deg, #e4002b, #ffb400, #12b767, #e4002b);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: spin 4s linear infinite;
+    opacity: 0.9;
+  }
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* Subtle lift for interactive cards */
+  .lift {
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
+  }
+  .lift:hover {
+    transform: translateY(-3px);
+  }
+
+  .glass {
+    background: rgb(var(--glass) / 0.75);
+    backdrop-filter: blur(12px);
+  }
+
+  /* Card sheen used on hover */
+  .sheen {
+    position: relative;
+    overflow: hidden;
+  }
+  .sheen::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(228, 0, 43, 0.06),
+      transparent
+    );
+  }
+  .sheen:hover::after {
+    animation: shimmer 1.1s;
+  }
+}
+
+.font-mono {
+  font-feature-settings: "tnum" 1;
+}
