@@ -53,39 +53,25 @@ export interface LearningPath {
 export type SignCategory =
   | "Regulatory"
   | "Warning"
-  | "Guidance"
   | "Information"
   | "Temporary";
 
-export type SignSymbol =
-  | { kind: "text"; value: string; scale?: number }
-  | { kind: "arrow"; rotate?: number }
-  | { kind: "bar" } // diagonal or horizontal prohibition bar
-  | { kind: "ring" } // just the ring (e.g. no stopping uses X)
-  | { kind: "cross" }
-  | { kind: "pedestrian" }
-  | { kind: "bend"; mirror?: boolean }
-  | { kind: "children" }
-  | { kind: "robot" } // traffic light ahead
-  | { kind: "hump" }
-  | { kind: "slippery" }
-  | { kind: "roundabout" }
-  | { kind: "digger" } // roadworks
-  | { kind: "overtake" } // two cars (no-overtaking)
-  | { kind: "none" };
+/** SADC-RTSM sub-class, e.g. "Control", "Prohibition", "Curves". */
+export type SignGroup = string;
 
 export interface RoadSign {
   id: string;
-  code: string; // SARTSM-style code, e.g. "R1" / "W301"
+  /** Official SADC-RTSM / SARTSM sign number, e.g. "R1", "W332". */
+  code: string;
   name: string;
   category: SignCategory;
+  group: SignGroup;
+  /** What the sign means, in plain language. */
   meaning: string;
-  shape: "circle" | "triangle" | "octagon" | "rectangle" | "diamond" | "pentagon";
-  /** Rendering spec for the programmatic SVG. */
-  fill: string;
-  stroke: string;
-  symbol: SignSymbol;
-  symbolColor?: string;
+  /** What a driver should actually do — the bit examiners care about. */
+  action?: string;
+  /** Artwork file in /public/signs (defaults to `${code}.svg`). */
+  image?: string;
 }
 
 export interface BadgeDef {

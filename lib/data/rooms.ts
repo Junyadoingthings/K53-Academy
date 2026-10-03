@@ -56,12 +56,12 @@ export const ROOMS: Room[] = [
     sections: [
       {
         heading: "Shape tells you the type",
-        body: "Octagon = stop. Inverted triangle = yield. Round signs give commands (blue) or prohibitions (red ring). A red circle with a bar or cross forbids something; a blue circle commands something.",
+        body: "Octagon = stop. Inverted triangle = yield. Round signs either command or prohibit. A blue disc commands you to do something; a red ring with a diagonal slash forbids something; a red ring without a slash sets a limit you may not exceed, such as speed, mass or height.",
         tip: "Red = don't. Blue = do.",
       },
       {
         heading: "Speed and prohibition signs",
-        body: "A red ring around a number is the speed limit. A red ring around a symbol (like two cars) with a bar forbids that action — for example, no overtaking. A red cross means no stopping; the letter P with a bar means no parking.",
+        body: "A red ring around a number is the speed limit. A red ring with a red diagonal slash across a symbol forbids that action — two cars slashed means no overtaking, a slashed U-turn arrow means no U-turn. A slashed P means no parking (you may still stop briefly to load or drop off); a slashed S means no stopping at all.",
       },
     ],
     questionIds: ["sign-001", "sign-002", "sign-004", "sign-005", "sign-007"],
@@ -88,7 +88,7 @@ export const ROOMS: Room[] = [
       },
       {
         heading: "Temporary (roadworks) warnings",
-        body: "Yellow diamond signs are temporary — they mark roadworks and short-lived hazards. Obey the reduced limits and any flag operators; conditions can change from day to day.",
+        body: "Signs with a yellow background are temporary — they mark roadworks and short-lived hazards, and they override the permanent signs around them. Obey the reduced limits and any STOP/GO flag operators; conditions can change from day to day.",
       },
     ],
     questionIds: ["sign-003", "sign-006", "sign-009", "sign-010"],

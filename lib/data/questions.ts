@@ -218,7 +218,7 @@ export const QUESTIONS: Question[] = [
     type: "image",
     codes: ["1", "2", "3"],
     prompt: "What does this sign warn of?",
-    signId: "pedestrian-crossing",
+    signId: "pedestrian-crossing-ahead",
     options: [
       "Children playing",
       "Pedestrian crossing ahead",
@@ -227,8 +227,8 @@ export const QUESTIONS: Question[] = [
     ],
     answer: 1,
     explanation:
-      "A triangular warning sign with a walking figure warns that a pedestrian crossing lies ahead — be ready to stop.",
-    reference: "SARTSM — Warning sign W308",
+      "A red-bordered warning triangle showing a person on zebra stripes warns that a pedestrian crossing lies ahead — be ready to stop.",
+    reference: "SARTSM — Warning sign W306",
     difficulty: "Easy",
   },
   {
@@ -255,8 +255,8 @@ export const QUESTIONS: Question[] = [
     options: ["No parking", "No stopping", "No U-turn", "Clearway ends"],
     answer: 1,
     explanation:
-      "A red circle with a red cross means no stopping at all — you may not halt the vehicle here for any reason.",
-    reference: "SARTSM — Regulatory sign R216",
+      "A red ring with a crossed-out letter S means no stopping — you may not stop here, not even briefly, except to avoid a collision or obey a traffic signal. A crossed-out P (R216) means no parking.",
+    reference: "SARTSM — Regulatory sign R217",
     difficulty: "Medium",
   },
   {
@@ -273,7 +273,7 @@ export const QUESTIONS: Question[] = [
     ],
     answer: 1,
     explanation:
-      "Triangular signs with a red border warn of a hazard ahead. Round signs give commands or prohibitions; rectangular blue signs give information.",
+      "Triangular signs with a red border warn of a hazard ahead. Blue discs give commands, red rings prohibit or limit, and rectangular signs give information or guidance.",
     reference: "SARTSM — Sign categories",
     difficulty: "Easy",
   },
@@ -287,8 +287,8 @@ export const QUESTIONS: Question[] = [
     options: ["Keep left", "Turn left only", "No left turn", "Left lane closed"],
     answer: 0,
     explanation:
-      "A blue circle with a white arrow is a command sign. Angled down-left, it instructs you to keep left of the island or obstruction.",
-    reference: "SARTSM — Regulatory sign R110",
+      "A blue disc with a white arrow is a command sign. Pointing down to the left, it instructs you to keep left of the island or obstruction.",
+    reference: "SARTSM — Regulatory sign R103",
     difficulty: "Easy",
   },
   {
@@ -315,7 +315,7 @@ export const QUESTIONS: Question[] = [
     type: "image",
     codes: ["1", "2", "3"],
     prompt: "What does this warning sign mean?",
-    signId: "slippery",
+    signId: "slippery-road",
     options: [
       "Slippery road ahead",
       "Loose stones ahead",
@@ -325,7 +325,7 @@ export const QUESTIONS: Question[] = [
     answer: 0,
     explanation:
       "The skidding vehicle symbol warns that the road ahead may be slippery. Reduce speed and avoid sudden braking or steering.",
-    reference: "SARTSM — Warning sign W348",
+    reference: "SARTSM — Warning sign W333",
     difficulty: "Medium",
   },
   {
@@ -333,7 +333,7 @@ export const QUESTIONS: Question[] = [
     category: "Road Signs & Markings",
     type: "image",
     codes: ["1", "2", "3"],
-    prompt: "This roadworks-yellow diamond sign warns of:",
+    prompt: "What does this yellow sign warn you about?",
     signId: "roadworks",
     options: [
       "A permanent hazard",
@@ -343,8 +343,8 @@ export const QUESTIONS: Question[] = [
     ],
     answer: 1,
     explanation:
-      "Yellow (temporary) signs mark roadworks and short-term hazards. Slow down and obey flag operators and temporary limits.",
-    reference: "SARTSM — Temporary sign TW319",
+      "Signs with a yellow background are temporary. This one shows a worker with a spade: roadworks ahead. Slow down and obey flag operators and temporary limits.",
+    reference: "SARTSM — Temporary sign TW336",
     difficulty: "Medium",
   },
 

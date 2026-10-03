@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Zap } from "lucide-react";
 import { useLevel, useStore } from "@/lib/store";
 import { CountUp } from "./count-up";
 import { cn } from "@/lib/utils";
@@ -12,45 +11,33 @@ export function XpBar({ className, compact = false }: { className?: string; comp
 
   return (
     <div className={cn("w-full", className)}>
-      <div className="mb-1.5 flex items-end justify-between">
-        <div className="flex items-center gap-2">
-          <span className={cn("grid place-items-center rounded-lg bg-cyan/15 text-cyan", compact ? "h-6 w-6" : "h-8 w-8")}>
-            <Zap className={compact ? "h-3.5 w-3.5" : "h-4 w-4"} fill="currentColor" />
-          </span>
-          <div className="leading-tight">
-            <div className="font-heading text-sm font-bold text-ink">
-              Level {level.level}
-            </div>
-            {!compact && (
-              <div className={cn("text-[11px] font-medium", level.rank.color)}>{level.rank.name}</div>
-            )}
-          </div>
+      <div className="mb-2 flex items-baseline justify-between gap-3">
+        <div className="text-sm font-semibold text-ink">
+          Level {level.level}
+          {!compact && <span className="ml-1.5 font-normal text-ink-muted">· {level.rank.name}</span>}
         </div>
-        <div className="text-right font-mono text-xs text-ink-muted">
-          <CountUp value={level.currentLevelXp} format={false} className="text-cyan" /> /{" "}
-          {level.levelSpan} XP
+        <div className="tabular text-xs text-ink-muted">
+          <CountUp value={level.currentLevelXp} format={false} className="font-medium text-ink" /> / {level.levelSpan} XP
         </div>
       </div>
 
-      <div className="relative h-3 w-full overflow-hidden rounded-full bg-navy-700">
+      <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-navy-700">
         <motion.div
-          className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-cyan-deep via-cyan to-cyan-soft"
+          className="absolute inset-y-0 left-0 rounded-full bg-cyan"
           initial={{ width: 0 }}
-          animate={{ width: `${Math.max(4, level.progress * 100)}%` }}
-          transition={{ type: "spring", stiffness: 90, damping: 18 }}
-        >
-          <div className="absolute inset-0 animate-pulse-glow bg-cyan/40 blur-[6px]" />
-        </motion.div>
-        {/* moving highlight */}
-        <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-full">
-          <div className="h-full w-1/3 animate-shimmer bg-gradient-to-r from-transparent via-white/25 to-transparent" />
-        </div>
+          animate={{ width: `${Math.max(2, level.progress * 100)}%` }}
+          transition={{ type: "spring", stiffness: 90, damping: 20 }}
+        />
       </div>
 
       {!compact && (
-        <div className="mt-1.5 flex items-center justify-between text-[10px] text-ink-faint">
-          <span>Total: <CountUp value={xp} className="text-ink-muted" /> XP</span>
-          <span>{level.levelSpan - level.currentLevelXp} XP to level {level.level + 1}</span>
+        <div className="mt-2 flex items-center justify-between text-[11px] text-ink-faint">
+          <span>
+            <CountUp value={xp} className="text-ink-muted" /> XP total
+          </span>
+          <span>
+            {level.levelSpan - level.currentLevelXp} to level {level.level + 1}
+          </span>
         </div>
       )}
     </div>

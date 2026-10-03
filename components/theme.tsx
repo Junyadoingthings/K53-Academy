@@ -9,8 +9,8 @@ const KEY = "k53-theme";
 const EVENT = "k53themechange";
 
 function read(): Theme {
-  if (typeof window === "undefined") return "dark";
-  return (localStorage.getItem(KEY) as Theme) || "dark";
+  if (typeof window === "undefined") return "light";
+  return document.documentElement.classList.contains("dark") ? "dark" : "light";
 }
 
 export function applyTheme(t: Theme) {
@@ -24,7 +24,7 @@ export function applyTheme(t: Theme) {
 
 /** Subscribe to the current theme; updates when toggled anywhere. */
 export function useTheme() {
-  const [theme, setTheme] = React.useState<Theme>("dark");
+  const [theme, setTheme] = React.useState<Theme>("light");
   React.useEffect(() => {
     setTheme(read());
     const h = (e: Event) => setTheme((e as CustomEvent<Theme>).detail);
@@ -47,7 +47,7 @@ export function ThemeToggle({ className }: { className?: string }) {
       aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
       title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
       className={cn(
-        "relative grid h-9 w-9 place-items-center rounded-full border border-asphalt/15 bg-navy-800/60 text-ink-muted transition-all hover:border-cyan/50 hover:text-cyan",
+        "relative grid h-9 w-9 place-items-center rounded-lg text-ink-muted transition-colors hover:bg-navy-800 hover:text-ink",
         className
       )}
     >

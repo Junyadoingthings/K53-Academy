@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import * as Icons from "lucide-react";
 import { Logo } from "@/components/brand/logo";
-import { NAV_ITEMS } from "./nav-items";
+import { NAV_SECTIONS } from "./nav-items";
 import { XpBar } from "@/components/gamification/xp-bar";
 import { ClientOnly } from "@/components/hydration";
 import { cn } from "@/lib/utils";
@@ -13,47 +13,52 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-asphalt/[0.10] bg-navy-950/60 backdrop-blur-xl lg:flex">
-      <div className="px-5 py-5">
-        <Link href="/dashboard">
-          <Logo size={38} />
+    <aside className="fixed inset-y-0 left-0 z-40 hidden w-60 flex-col border-r border-asphalt/[0.08] bg-navy-950 lg:flex">
+      <div className="flex h-14 items-center px-5">
+        <Link href="/dashboard" aria-label="K53 Academy home">
+          <Logo size={26} />
         </Link>
       </div>
 
-      <nav className="flex-1 space-y-1 px-3">
-        {NAV_ITEMS.map((item) => {
-          const Icon = (Icons[item.icon as keyof typeof Icons] ?? Icons.Circle) as React.ComponentType<{
-            className?: string;
-          }>;
-          const active = pathname === item.href || pathname.startsWith(item.href + "/");
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
-                active
-                  ? "bg-cyan/10 text-cyan"
-                  : "text-ink-muted hover:bg-asphalt/[0.06] hover:text-ink"
-              )}
-            >
-              {active && (
-                <span className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-cyan shadow-neon" />
-              )}
-              <Icon className="h-[18px] w-[18px]" />
-              {item.label}
-            </Link>
-          );
-        })}
+      <nav className="flex-1 space-y-6 overflow-y-auto px-3 pt-4">
+        {NAV_SECTIONS.map((section) => (
+          <div key={section.label}>
+            <div className="mb-1.5 px-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-ink-faint">
+              {section.label}
+            </div>
+            <ul className="space-y-0.5">
+              {section.items.map((item) => {
+                const Icon = (Icons[item.icon as keyof typeof Icons] ?? Icons.Circle) as React.ComponentType<{
+                  className?: string;
+                }>;
+                const active = pathname === item.href || pathname.startsWith(item.href + "/");
+                return (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      aria-current={active ? "page" : undefined}
+                      className={cn(
+                        "flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm transition-colors",
+                        active
+                          ? "bg-navy-800 font-medium text-ink"
+                          : "text-ink-muted hover:bg-navy-800/70 hover:text-ink"
+                      )}
+                    >
+                      <Icon className={cn("h-4 w-4", active ? "text-cyan" : "text-ink-faint")} />
+                      {item.label}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ))}
       </nav>
 
-      <div className="border-t border-asphalt/[0.10] p-4">
-        <ClientOnly fallback={<div className="h-16" />}>
+      <div className="m-3 rounded-lg border border-asphalt/[0.08] bg-navy-850 p-3.5">
+        <ClientOnly fallback={<div className="h-14" />}>
           <XpBar />
         </ClientOnly>
-        <p className="mt-3 text-center font-mono text-[10px] text-ink-faint">
-          Created by Stanford (Junya) Mazibuko
-        </p>
       </div>
     </aside>
   );

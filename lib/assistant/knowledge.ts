@@ -75,7 +75,7 @@ const FAQ: Doc[] = [
     id: "faq-signs-shapes",
     kind: "faq",
     title: "How do I read road signs by shape and colour?",
-    body: "Shape and colour tell you the type at a glance. An octagon is stop; an inverted triangle is yield. Round signs give commands (blue) or prohibitions (red ring) — red means don't, blue means do. Triangular signs with a red border warn of a hazard ahead. Rectangular blue signs give information; yellow diamond signs mark temporary roadworks.",
+    body: "Shape and colour tell you the type at a glance. An octagon is stop; an inverted triangle is yield. Blue discs give commands (do this); red rings prohibit or limit (don't do this, don't exceed this). Triangular signs with a red border warn of a hazard ahead. Rectangular signs give information or guidance, and blue rectangles marked “R” reserve space for certain vehicles. Signs with a yellow background are temporary, usually at roadworks.",
   },
   {
     id: "faq-premium",

@@ -2,11 +2,11 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 const tones = {
-  cyan: "border-cyan/30 bg-cyan/10 text-cyan",
-  amber: "border-amber/30 bg-amber/10 text-amber",
-  grass: "border-grass/30 bg-grass/10 text-grass",
-  signal: "border-signal/30 bg-signal/10 text-signal",
-  muted: "border-asphalt/15 bg-asphalt/[0.06] text-ink-muted",
+  cyan: "bg-cyan/10 text-cyan ring-cyan/20",
+  amber: "bg-amber/10 text-amber ring-amber/25",
+  grass: "bg-grass/10 text-grass ring-grass/20",
+  signal: "bg-signal/10 text-signal ring-signal/20",
+  muted: "bg-navy-800 text-ink-muted ring-asphalt/[0.08]",
 } as const;
 
 export function Pill({
@@ -17,7 +17,7 @@ export function Pill({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-medium",
+        "inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset",
         tones[tone],
         className
       )}

@@ -1,21 +1,21 @@
 import type { Config } from "tailwindcss";
 
 /**
- * K53 Academy — "Traffic Light / Road Sign" theme.
+ * K53 Academy design tokens.
  *
- * Light, road-sign-inspired palette: warm-white surfaces, traffic RED as the
- * primary accent, warning YELLOW as the secondary, GREEN kept for "go"/success
- * (traffic light), and dark ASPHALT for text, borders and roadway bands.
+ * Neutral, product-grade surfaces with road-sign colours used as accents only:
+ * RED for brand / primary actions, AMBER for streaks & caution, GREEN for
+ * success. Surfaces and text flip between light and dark via CSS variables
+ * (see app/globals.css).
  *
- * NOTE ON TOKEN NAMES: to avoid churn across ~30 files, the original token
- * names are kept but remapped to the new palette:
- *   cyan   → traffic RED   (primary accent)
- *   amber  → warning YELLOW/GOLD (secondary accent)
- *   grass  → traffic GREEN (success / "go")
+ * NOTE ON TOKEN NAMES (kept to avoid churn across the codebase):
+ *   cyan   → brand RED (primary accent)
+ *   amber  → AMBER (secondary / streaks)
+ *   grass  → GREEN (success)
  *   signal → RED (errors / stop)
- *   navy   → light PAPER surfaces (page = cream, cards = white)
- *   ink    → dark text
- * `asphalt` is new: dark roadway for bands, borders and shadows.
+ *   navy   → neutral surfaces (page, cards, inputs, borders)
+ *   ink    → text
+ *   asphalt.DEFAULT → hairline colour; numbered shades are fixed darks.
  */
 const config: Config = {
   darkMode: "class",
@@ -27,19 +27,15 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Dark roadway. DEFAULT is the theme-flipping hairline (dark line on
-        // light, light line on dark); the numbered shades stay fixed-dark for
-        // the traffic-light housing, splash and modal backdrops.
         asphalt: {
           DEFAULT: "rgb(var(--hairline) / <alpha-value>)",
-          950: "#101114",
-          900: "#17181C",
-          850: "#1E2026",
-          800: "#272932",
-          700: "#343742",
-          600: "#474B58",
+          950: "#0B0C0E",
+          900: "#111215",
+          850: "#16181C",
+          800: "#1D1F24",
+          700: "#2A2D33",
+          600: "#3E424A",
         },
-        // Paper surfaces — flip between light (cream/white) and dark via vars.
         navy: {
           950: "rgb(var(--nv-950) / <alpha-value>)",
           900: "rgb(var(--nv-900) / <alpha-value>)",
@@ -48,28 +44,23 @@ const config: Config = {
           700: "rgb(var(--nv-700) / <alpha-value>)",
           600: "rgb(var(--nv-600) / <alpha-value>)",
         },
-        // Traffic RED — primary accent (legacy name: cyan)
         cyan: {
-          DEFAULT: "#E4002B",
-          soft: "#FF3D53",
-          deep: "#B10021",
+          DEFAULT: "rgb(var(--brand) / <alpha-value>)",
+          soft: "rgb(var(--brand-soft) / <alpha-value>)",
+          deep: "rgb(var(--brand-deep) / <alpha-value>)",
         },
-        // Warning YELLOW / gold — secondary accent
         amber: {
-          DEFAULT: "#E68A00",
-          soft: "#FFC12E",
+          DEFAULT: "rgb(var(--amber) / <alpha-value>)",
+          soft: "rgb(var(--amber-soft) / <alpha-value>)",
         },
-        // Traffic GREEN — success / "go"
         grass: {
-          DEFAULT: "#0B9C56",
-          soft: "#25C777",
+          DEFAULT: "rgb(var(--green) / <alpha-value>)",
+          soft: "rgb(var(--green-soft) / <alpha-value>)",
         },
-        // RED — errors / stop
         signal: {
-          DEFAULT: "#E4002B",
-          soft: "#FF4D5E",
+          DEFAULT: "rgb(var(--brand) / <alpha-value>)",
+          soft: "rgb(var(--brand-soft) / <alpha-value>)",
         },
-        // Text — flips with theme.
         ink: {
           DEFAULT: "rgb(var(--ink) / <alpha-value>)",
           muted: "rgb(var(--ink-muted) / <alpha-value>)",
@@ -78,24 +69,21 @@ const config: Config = {
       },
       fontFamily: {
         sans: ["var(--font-geist-sans)", "system-ui", "sans-serif"],
-        heading: ["var(--font-space-grotesk)", "var(--font-geist-sans)", "sans-serif"],
-        mono: ["var(--font-jetbrains-mono)", "ui-monospace", "monospace"],
+        heading: ["var(--font-geist-sans)", "system-ui", "sans-serif"],
+        mono: ["var(--font-geist-mono)", "ui-monospace", "monospace"],
       },
       boxShadow: {
-        neon: "0 0 0 1px rgba(228,0,43,0.18), 0 14px 30px -14px rgba(228,0,43,0.35)",
-        "neon-amber": "0 0 0 1px rgba(230,138,0,0.22), 0 14px 30px -14px rgba(230,138,0,0.4)",
-        "neon-green": "0 0 0 1px rgba(11,156,86,0.2), 0 14px 30px -14px rgba(11,156,86,0.35)",
-        "neon-red": "0 0 0 1px rgba(228,0,43,0.22), 0 14px 30px -14px rgba(228,0,43,0.4)",
-        card: "0 1px 2px rgba(27,28,33,0.05), 0 14px 34px -18px rgba(27,28,33,0.22)",
+        // Legacy "neon" names now map to quiet, neutral elevation.
+        neon: "0 1px 2px rgb(16 24 40 / 0.08), 0 2px 8px -2px rgb(16 24 40 / 0.10)",
+        "neon-amber": "0 1px 2px rgb(16 24 40 / 0.08), 0 2px 8px -2px rgb(16 24 40 / 0.10)",
+        "neon-green": "0 1px 2px rgb(16 24 40 / 0.08), 0 2px 8px -2px rgb(16 24 40 / 0.10)",
+        "neon-red": "0 1px 2px rgb(16 24 40 / 0.08), 0 2px 8px -2px rgb(16 24 40 / 0.10)",
+        card: "0 1px 2px rgb(16 24 40 / 0.04)",
+        raised: "0 1px 2px rgb(16 24 40 / 0.04), 0 8px 24px -8px rgb(16 24 40 / 0.12)",
+        pop: "0 12px 40px -12px rgb(16 24 40 / 0.35)",
       },
       backgroundImage: {
-        "grid-faint":
-          "linear-gradient(to right, rgba(27,28,33,0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(27,28,33,0.05) 1px, transparent 1px)",
-        "radial-cyan":
-          "radial-gradient(600px circle at 50% -10%, rgba(228,0,43,0.10), transparent 60%)",
-      },
-      backgroundSize: {
-        grid: "44px 44px",
+        "radial-cyan": "none",
       },
       keyframes: {
         "road-dash": {
@@ -103,24 +91,23 @@ const config: Config = {
           "100%": { backgroundPosition: "-200px 0" },
         },
         "pulse-glow": {
-          "0%, 100%": { opacity: "0.55" },
+          "0%, 100%": { opacity: "0.6" },
           "50%": { opacity: "1" },
         },
         "flame-flicker": {
-          "0%, 100%": { transform: "scale(1) rotate(-1deg)", opacity: "1" },
-          "50%": { transform: "scale(1.06) rotate(1deg)", opacity: "0.9" },
+          "0%, 100%": { transform: "scale(1)" },
+          "50%": { transform: "scale(1.05)" },
         },
         "badge-pop": {
-          "0%": { transform: "scale(0.4) rotate(-12deg)", opacity: "0" },
-          "60%": { transform: "scale(1.12) rotate(4deg)", opacity: "1" },
-          "100%": { transform: "scale(1) rotate(0)", opacity: "1" },
+          "0%": { transform: "scale(0.6)", opacity: "0" },
+          "100%": { transform: "scale(1)", opacity: "1" },
         },
         shimmer: {
           "100%": { transform: "translateX(100%)" },
         },
         float: {
           "0%, 100%": { transform: "translateY(0)" },
-          "50%": { transform: "translateY(-6px)" },
+          "50%": { transform: "translateY(-4px)" },
         },
         "light-cycle": {
           "0%, 100%": { opacity: "1" },
@@ -130,10 +117,10 @@ const config: Config = {
       animation: {
         "road-dash": "road-dash 3s linear infinite",
         "pulse-glow": "pulse-glow 2.4s ease-in-out infinite",
-        "flame-flicker": "flame-flicker 1.6s ease-in-out infinite",
-        "badge-pop": "badge-pop 0.6s cubic-bezier(0.34,1.56,0.64,1) forwards",
+        "flame-flicker": "flame-flicker 2s ease-in-out infinite",
+        "badge-pop": "badge-pop 0.35s cubic-bezier(0.2,0.8,0.2,1) forwards",
         shimmer: "shimmer 2s infinite",
-        float: "float 5s ease-in-out infinite",
+        float: "float 6s ease-in-out infinite",
         "light-cycle": "light-cycle 1.4s ease-in-out infinite",
       },
     },
