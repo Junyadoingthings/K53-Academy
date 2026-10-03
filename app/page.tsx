@@ -126,8 +126,8 @@ function QuizCard() {
   return (
     <div className="overflow-hidden rounded-xl border border-asphalt/[0.1] bg-navy-850 shadow-pop">
       <div className="flex items-center justify-between border-b border-asphalt/[0.08] px-4 py-2.5">
-        <div className="text-[11px] font-medium text-ink-muted">Mock test · Question 26 of 68</div>
-        <div className="flex items-center gap-1 text-[11px] tabular text-ink-muted">
+        <div className="truncate text-[11px] font-medium text-ink-muted">Mock test · Q26 of 68</div>
+        <div className="flex shrink-0 items-center gap-1 text-[11px] tabular text-ink-muted">
           <Clock className="h-3 w-3" /> 41:12
         </div>
       </div>
@@ -189,7 +189,7 @@ function HeroVisual() {
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.45, duration: 0.4 }}
-        className="absolute right-3 top-4 flex items-center gap-2.5 rounded-xl border border-asphalt/[0.08] bg-navy-850/95 py-2 pl-2 pr-3.5 shadow-pop backdrop-blur sm:-right-4"
+        className="absolute right-3 top-4 hidden items-center gap-2.5 min-[400px]:flex rounded-xl border border-asphalt/[0.08] bg-navy-850/95 py-2 pl-2 pr-3.5 shadow-pop backdrop-blur sm:-right-4"
       >
         <span className="grid h-8 w-8 place-items-center rounded-lg bg-grass/10 text-grass">
           <Check className="h-4 w-4" />
@@ -204,7 +204,7 @@ function HeroVisual() {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3, duration: 0.45 }}
-        className="absolute bottom-0 left-0 w-[78%] max-w-[330px]"
+        className="absolute bottom-0 left-0 w-[86%] max-w-[330px] sm:w-[78%]"
       >
         <QuizCard />
       </motion.div>

@@ -32,7 +32,7 @@ export function Logo({
     <div className={cn("flex items-center gap-2.5", className)}>
       <LogoMark size={size} />
       {showText && (
-        <span className="text-[15px] font-semibold tracking-tight text-ink">
+        <span className="whitespace-nowrap text-[15px] font-semibold tracking-tight text-ink">
           K53 <span className="text-ink-muted font-medium">Academy</span>
         </span>
       )}
