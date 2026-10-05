@@ -2,7 +2,7 @@
   "name": "k53-academy",
   "version": "0.1.0",
   "private": true,
-  "description": "K53 Academy — Gamified Learner's & Driver's License prep for South Africa. Master the Road.",
+  "description": "K53 Academy: a study app for the South African learner's and driver's licence, with lessons, official SADC road signs, spaced repetition and exam-format mock tests.",
   "scripts": {
     "dev": "next dev -p 5300",
     "build": "next build",
