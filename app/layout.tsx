@@ -4,10 +4,30 @@ import { GeistMono } from "geist/font/mono";
 import { AppBoot } from "@/components/auth/guard";
 import "./globals.css";
 
+const SITE_TITLE = "K53 Academy — Pass your learner's and driver's licence";
+const SITE_DESCRIPTION =
+  "Structured K53 preparation for South Africa: official SADC road signs, rules of the road, vehicle controls and timed mock tests for Code 1, 2 and 3.";
+
 export const metadata: Metadata = {
-  title: "K53 Academy — Pass your learner's and driver's licence",
-  description:
-    "Structured K53 preparation for South Africa: official SADC road signs, rules of the road, vehicle controls and timed mock tests for Code 1, 2 and 3.",
+  metadataBase: new URL("https://k53academy.netlify.app"),
+  title: SITE_TITLE,
+  description: SITE_DESCRIPTION,
+  // Link previews (LinkedIn, WhatsApp, X, Slack…)
+  openGraph: {
+    type: "website",
+    url: "/",
+    siteName: "K53 Academy",
+    locale: "en_ZA",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: [{ url: "/og-image.jpg", width: 1200, height: 627, alt: "K53 Academy shown on a MacBook Pro" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: ["/og-image.jpg"],
+  },
   manifest: "/manifest.json",
   applicationName: "K53 Academy",
   appleWebApp: { capable: true, statusBarStyle: "default", title: "K53 Academy" },
